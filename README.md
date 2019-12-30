@@ -24,5 +24,6 @@ sudo apt install git python3-pip
 
 # Todo
 
-- Currently it only supports priority based on todo.txt spec, it should be improved
+- Currently it can only publish to webdav and into a file that's located in the same folder as the script. Improve to support custom txt location on the filesystem, as well as more cloud providers.
+- From todo.txt spec it currently only supports priority, which should be improved
 - Ability to create custom export templates (Jinja2? Or just format)
