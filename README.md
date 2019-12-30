@@ -24,9 +24,13 @@ sudo apt install git python3-pip
 cd \opt
 git clone https://github.com/Nixellion/TodoistToTxt.git
 ```
-- Copy example_config.yaml into config.yaml and adjust settings
+- Install requirements from requirements.txt
 ```
 cd TodoistToTxt
+pip3 install -r requirements.txt
+```
+- Copy example_config.yaml into config.yaml and adjust settings
+```
 cp example_config.yaml config.yaml
 nano config.yaml
 ```
