@@ -9,6 +9,7 @@
 - pip3 (python3-pip)
 
 Copy paste on debian systems to install requirements (remove sudo if on default debian, use with sudo on ubuntu and debian derivatives):
+
 ```
 sudo apt install git python3-pip
 ```
