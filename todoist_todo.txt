@@ -1,0 +1,18 @@
+(A) Fix Nextcloud appstore and version info
+(A) Work on Viking Game, Make beer spline
+(A) Алина последний стрим граб - мелкий + ооо тос э койн https://www.youtube.com/watch?v=TpoIeD05st8
+(A) Скачать стрим алины рин последний ведьмак https://www.youtube.com/watch?v=TpoIeD05st8 после моста
+(A) налить бутылки
+(B) Learn how to work with git and pull requests, how to contribute
+(B) Todoist to txt python app to show in rainmeter, push to nextcloud, run on server
+(B) Try Piwigo
+(B) Try WikiJS
+(B) Предложить харду подключиться удаленно
+(C) Contribute to youtube dl to dl playlists
+(C) Record videos for portfolio from paladins
+(D) Is there offline crossout build gallery?
+(D) Move remaining Notes from nextcloud to jplin and disable nc apps
+(D) Think about potential concept of an app combining notes, tasks and projects and calendar, workflow !
+(D) Try to find AE project with New Year explosions
+(D) Алине монитор пульса если заработает на харде
+(D) Харду про рестрим софт

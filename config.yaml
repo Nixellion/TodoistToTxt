@@ -1,0 +1,10 @@
+type:  webdav # filepath, webdav
+webdav_url: drive.davydov.tech
+webdav_path: remote.php/webdav
+webdav_directory: /Documents/Notes/
+webdav_login: admin # dav login
+webdav_password: 4maSrhenjq # dav pass
+todoist_token: '462a847d1530cdae66616e960644fac3a500164d'
+todoist_project: 'Inbox'
+max_items: 0
+filename_output: todoist_todo.txt
