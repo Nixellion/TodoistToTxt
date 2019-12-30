@@ -1,5 +1,4 @@
-type:  webdav # filepath, webdav
-webdav_url: drive.domain.com
+webdav_url: drive.domain.com # Use None or False if you don't wish to copy to webdav
 webdav_path: remote.php/webdav
 webdav_directory: /Documents/Notes/
 webdav_login: admin # dav login
@@ -8,3 +7,5 @@ todoist_token: '00000000000000000000000000000'
 todoist_project: 'Inbox'
 max_items: 0
 filename_output: todoist_todo.txt
+copy_file_to: False # Full path where to copy the file to. Can include filename or just a directory.
+show_completed_tasks: yes

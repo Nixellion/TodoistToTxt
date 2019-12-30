@@ -5,30 +5,27 @@ import string
 
 # easywebdav python3 hack
 import easywebdav.client
+
 easywebdav.basestring = str
 easywebdav.client.basestring = str
 
-
 import easywebdav
 
-#from pprint import PrettyPrinter
-#pp = PrettyPrinter(indent=4)
-
 appdir = os.path.dirname(os.path.realpath(__file__))  # rp, realpath
-
-
 
 # Read config
 with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
     config = yaml.load(f.read())
-
 
 # Fetch todoist items
 api = todoist.TodoistAPI(config['todoist_token'])
 api.sync()
 
 # Pprint for debug purposes
+# from pprint import PrettyPrinter
+# pp = PrettyPrinter(indent=4, width=10000)
 # pp.pprint(api.state)
+# input()
 
 # Find required project
 for key, value in api.state.items():
@@ -40,15 +37,22 @@ for key, value in api.state.items():
                 break
         break
 
-
 # Filter items
+# Filter completed out
 items = []
-for value in api.state['items']:
-    if value['project_id'] == project_id:
+for item in api.state['items']:
+    if item['project_id'] == project_id:
         if config['max_items'] != 0 and len(items) > int(config['max_items']) - 1:
             break
-        items.append("({}) {}".format(string.ascii_uppercase[4 - value['priority']], value['content']))
+        if item['checked'] == 0:
+            items.append("({}) {}".format(string.ascii_uppercase[4 - item['priority']], item['content']))
+        elif item['checked'] == 1:
+            if config['show_completed_tasks']:
+                items.append("x ({}) {}".format(string.ascii_uppercase[4 - item['priority']], item['content']))
+        else:
+            print("Something's not right, did Todoist change API? item['checked'] is not 0 or 1.")
 
+# TODO Check if file iS the same and dont write if it is
 # Create output text
 output_text = ""
 for i in sorted(items):
@@ -58,12 +62,20 @@ for i in sorted(items):
 # TODO Make 'type' selection work
 local_filepath = os.path.join(appdir, config['filename_output'])
 
+
+
 # Write to local file
 with open(local_filepath, 'w+', encoding='utf-8', errors='ignore') as f:
     f.write(output_text)
 
-# Upload to webdav
-webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'], password=config['webdav_password'],
-                            protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
+# Copy if copy
+if config['copy_file_to']:
+    import shutil
+    shutil.copy(local_filepath, config['copy_file_to'])
 
-webdav.upload(local_filepath, "{}/{}".format(config['webdav_directory'], config['filename_output']))
+# Upload to webdav
+if config['webdav_url']:
+    webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'], password=config['webdav_password'],
+                                protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
+
+    webdav.upload(local_filepath, "{}/{}".format(config['webdav_directory'], config['filename_output']))
