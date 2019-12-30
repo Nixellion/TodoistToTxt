@@ -17,9 +17,18 @@ sudo apt install git python3-pip
 ## Installation 
  
 - Clone repo anywhere you like
+```
+cd \opt
+git clone https://github.com/Nixellion/TodoistToTxt.git
+```
 - Copy example_config.yaml into config.yaml and adjust settings
+```
+cd TodoistToTxt
+cp example_config.yaml config.yaml
+nano config.yaml
+```
 - todoist token is available in the web app, under preferences - integrations, API token
-- Use cronjob or Task Scheduler to run this script as often as you like
+- Use cronjob or Task Scheduler to run this script as often as you like. Todoist supports up to 50 requests per minute or something like that.
 
 
 # Todo
