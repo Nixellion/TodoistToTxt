@@ -78,10 +78,12 @@ if config['export_file_as']:
 
 # Upload to webdav
 if config['webdav_url']:
-    with tempfile.NamedTemporaryFile(mode="w+", encoding='utf-8') as tmp:
+    with tempfile.NamedTemporaryFile(mode="w+", encoding='utf-8', delete=False) as tmp:
         tmp.write(output_text)
+        tmp_fp = tmp.name
 
-        webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'], password=config['webdav_password'],
-                                    protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
+    webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'], password=config['webdav_password'],
+                                protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
 
-        webdav.upload(tmp.name, "{}/{}".format(config['webdav_directory'], config['filename_output']))
+    webdav.upload(tmp_fp, "{}/{}".format(config['webdav_directory'], config['filename_output']))
+    os.remove(tmp_fp)
