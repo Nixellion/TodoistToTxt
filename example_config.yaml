@@ -7,5 +7,5 @@ todoist_token: '00000000000000000000000000000'
 todoist_project: 'Inbox'
 max_items: 0
 filename_output: todoist_todo.txt
-copy_file_to: False # Full path where to copy the file to. Can include filename or just a directory.
+export_file_as: False # Full path where to copy the file to. Must include filename
 show_completed_tasks: yes

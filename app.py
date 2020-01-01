@@ -2,6 +2,7 @@ import os
 import yaml
 import todoist
 import string
+import tempfile
 
 # easywebdav python3 hack
 import easywebdav.client
@@ -65,17 +66,22 @@ local_filepath = os.path.join(appdir, config['filename_output'])
 
 
 # Write to local file
-with open(local_filepath, 'w+', encoding='utf-8', errors='ignore') as f:
-    f.write(output_text)
+#with open(local_filepath, 'w+', encoding='utf-8', errors='ignore') as f:
+#    f.write(output_text)
+
+
 
 # Copy if copy
-if config['copy_file_to']:
-    import shutil
-    shutil.copy(local_filepath, config['copy_file_to'])
+if config['export_file_as']:
+    with open(config['export_file_as'], 'w+', encoding='utf-8', errors='ignore') as f:
+        f.write(output_text)
 
 # Upload to webdav
 if config['webdav_url']:
-    webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'], password=config['webdav_password'],
-                                protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
+    with tempfile.NamedTemporaryFile(mode="w+", encoding='utf-8') as tmp:
+        tmp.write(output_text)
 
-    webdav.upload(local_filepath, "{}/{}".format(config['webdav_directory'], config['filename_output']))
+        webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'], password=config['webdav_password'],
+                                    protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
+
+        webdav.upload(tmp.name, "{}/{}".format(config['webdav_directory'], config['filename_output']))
