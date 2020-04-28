@@ -3,7 +3,7 @@ import yaml
 import todoist
 import string
 import tempfile
-
+import sys
 # easywebdav python3 hack
 import easywebdav.client
 
@@ -73,6 +73,11 @@ local_filepath = os.path.join(appdir, config['filename_output'])
 
 # Copy if copy
 if config['export_file_as']:
+    if os.path.exists(config['export_file_as']):
+        with open(config['export_file_as'], 'r', encoding='utf-8', errors='ignore') as f:
+            old_text = f.read()
+        if output_text == old_text:
+            sys.exit()
     with open(config['export_file_as'], 'w+', encoding='utf-8', errors='ignore') as f:
         f.write(output_text)
 
