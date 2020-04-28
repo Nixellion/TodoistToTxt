@@ -87,7 +87,7 @@ if config['webdav_url']:
     webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'],
                                 password=config['webdav_password'],
                                 protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
-    with tempfile.NamedTemporaryFile(mode="w+", encoding='utf-8', delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(mode="wb+", encoding='utf-8', delete=False) as tmp:
         webdav.download("{}/{}".format(config['webdav_directory'], config['filename_output']), tmp)
         tmp_fp = tmp.name
         with open(tmp_fp, "r", encoding="utf-8") as f:
