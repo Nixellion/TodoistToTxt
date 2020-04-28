@@ -77,18 +77,28 @@ if config['export_file_as']:
         with open(config['export_file_as'], 'r', encoding='utf-8', errors='ignore') as f:
             old_text = f.read()
         if output_text == old_text:
+            print("No changes in todo list. Exit.")
             sys.exit()
     with open(config['export_file_as'], 'w+', encoding='utf-8', errors='ignore') as f:
         f.write(output_text)
 
 # Upload to webdav
 if config['webdav_url']:
+    webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'],
+                                password=config['webdav_password'],
+                                protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
+    with tempfile.NamedTemporaryFile(mode="rw+", encoding='utf-8', delete=False) as tmp:
+        webdav.download("{}/{}".format(config['webdav_directory'], config['filename_output']), tmp)
+        old_text = tmp.read()
+        if output_text == old_text:
+            print("No changes in todo list. Exit.")
+            sys.exit()
+
     with tempfile.NamedTemporaryFile(mode="w+", encoding='utf-8', delete=False) as tmp:
         tmp.write(output_text)
         tmp_fp = tmp.name
 
-    webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'], password=config['webdav_password'],
-                                protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
+
 
     webdav.upload(tmp_fp, "{}/{}".format(config['webdav_directory'], config['filename_output']))
     os.remove(tmp_fp)
