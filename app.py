@@ -6,6 +6,8 @@ import tempfile
 import sys
 # easywebdav python3 hack
 import easywebdav.client
+from pprint import PrettyPrinter
+pp = PrettyPrinter(indent=4)
 
 easywebdav.basestring = str
 easywebdav.client.basestring = str
@@ -21,6 +23,8 @@ with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
 # Fetch todoist items
 api = todoist.TodoistAPI(config['todoist_token'])
 api.sync()
+
+pp.pprint(api.state)
 
 # Pprint for debug purposes
 # from pprint import PrettyPrinter
@@ -72,7 +76,7 @@ def generate_output_text():
     project_items = get_project_items(config['todoist_project'])
     output_text = text_from_items(project_items)
     if config['todoist_append_inbox']:
-        output_text = f'TODAY:\n\n{output_text}\n\nINBOX:{text_from_items(get_project_items("Inbox"), filter_out=project_items)}'
+        output_text = f'TODAY:\n\n{output_text}\n\nINBOX:\n\n{text_from_items(get_project_items("Inbox"), filter_out=project_items)}'
     return output_text
 
 if __name__ == "__main__":
