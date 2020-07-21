@@ -4,7 +4,8 @@ webdav_directory: /Documents/Notes/
 webdav_login: admin # dav login
 webdav_password: password # dav pass
 todoist_token: '00000000000000000000000000000'
-todoist_project: 'Inbox'
+todoist_project: 'Today'
+todoist_append_inbox: True
 max_items: 0
 filename_output: todoist_todo.txt
 export_file_as: False # Full path where to copy the file to. Must include filename
