@@ -70,9 +70,8 @@ def get_project_items(project_name):
                 break
             if item['checked'] == 0:
                 item_text = "({}) {}".format(string.ascii_uppercase[4 - item['priority']], item['content'])
-                if config['show_due_date']:
+                if config['show_due_date'] and item['due'] != None:
                     item_text = f"{item_text} due:{item['due']['date']}"
-                item_text.append()
                 items.append(item_text)
             elif item['checked'] == 1:
                 if config['show_completed_tasks']:
