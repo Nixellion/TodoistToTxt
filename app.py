@@ -30,6 +30,10 @@ if config['debug']:
     with open(os.path.join(appdir, "debug.json"), "w+", encoding="utf-8") as f:
         f.write(pprint.pformat(api.state, indent=4))
 
+def debug(text):
+    if config['debug']:
+        print(text)
+
 #json.dumps(api.state, default=lambda o: '<not serializable>', indent=4)
 # Pprint for debug purposes
 # from pprint import PrettyPrinter
@@ -57,7 +61,7 @@ def get_project_items(project_name):
     items = []
     for item in api.state['items']:
         select = False
-        if item['project_id'] == "Today":
+        if project_name == "Today":
             if item['due'] != None:
                 if datetime.strptime(item['due']['date'], "%Y-%m-%d").date() <= datetime.now().date():
                     select = True
@@ -103,6 +107,8 @@ if __name__ == "__main__":
     local_filepath = os.path.join(appdir, config['filename_output'])
 
     output_text = generate_output_text()
+
+    debug(output_text)
 
     # Copy if copy
     if config['export_file_as']:
