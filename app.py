@@ -6,8 +6,10 @@ import tempfile
 import sys
 # easywebdav python3 hack
 import easywebdav.client
-from pprint import PrettyPrinter
-pp = PrettyPrinter(indent=4)
+from datetime import date, datetime
+
+import pprint
+
 
 easywebdav.basestring = str
 easywebdav.client.basestring = str
@@ -24,8 +26,11 @@ with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
 api = todoist.TodoistAPI(config['todoist_token'])
 api.sync()
 
-pp.pprint(api.state)
+if config['debug']:
+    with open(os.path.join(appdir, "debug.json"), "w+", encoding="utf-8") as f:
+        f.write(pprint.pformat(api.state, indent=4))
 
+#json.dumps(api.state, default=lambda o: '<not serializable>', indent=4)
 # Pprint for debug purposes
 # from pprint import PrettyPrinter
 # pp = PrettyPrinter(indent=4, width=10000)
@@ -51,11 +56,24 @@ def get_project_items(project_name):
     project_id = get_project_id(project_name)
     items = []
     for item in api.state['items']:
-        if item['project_id'] == project_id:
+        select = False
+        if item['project_id'] == "Today":
+            if item['due'] != None:
+                if datetime.strptime(item['due']['date'], "%Y-%m-%d").date() <= datetime.now().date():
+                    select = True
+
+        elif item['project_id'] == project_id:
+            select = True
+
+        if select:
             if config['max_items'] != 0 and len(items) > int(config['max_items']) - 1:
                 break
             if item['checked'] == 0:
-                items.append("({}) {}".format(string.ascii_uppercase[4 - item['priority']], item['content']))
+                item_text = "({}) {}".format(string.ascii_uppercase[4 - item['priority']], item['content'])
+                if config['show_due_date']:
+                    item_text = f"{item_text} due:{item['due']['date']}"
+                item_text.append()
+                items.append(item_text)
             elif item['checked'] == 1:
                 if config['show_completed_tasks']:
                     items.append("x ({}) {}".format(string.ascii_uppercase[4 - item['priority']], item['content']))
@@ -103,15 +121,18 @@ if __name__ == "__main__":
         webdav = easywebdav.connect(config['webdav_url'], username=config['webdav_login'],
                                     password=config['webdav_password'],
                                     protocol='https', port=443, verify_ssl=False, path=config['webdav_path'])
+
         with tempfile.NamedTemporaryFile(mode="wb+", delete=False) as tmp:
             webdav.download("{}/{}".format(config['webdav_directory'], config['filename_output']), tmp)
             tmp_fp = tmp.name
+
         with open(tmp_fp, "r", encoding="utf-8") as f:
             old_text = f.read()
-            if output_text == old_text:
-                print("No changes in todo list. Exit.")
-                os.remove(tmp_fp)
-                sys.exit()
+
+        if output_text == old_text:
+            print("No changes in todo list. Exit.")
+            os.remove(tmp_fp)
+            sys.exit()
 
         with tempfile.NamedTemporaryFile(mode="w+", encoding='utf-8', delete=False) as tmp:
             tmp.write(output_text)

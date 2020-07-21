@@ -10,3 +10,5 @@ max_items: 0
 filename_output: todoist_todo.txt
 export_file_as: False # Full path where to copy the file to. Must include filename
 show_completed_tasks: yes
+debug: False
+show_due_date: yes
