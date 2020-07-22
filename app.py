@@ -63,7 +63,11 @@ def get_project_items(project_name):
         select = False
         if project_name == "Today":
             if item['due'] != None:
-                if datetime.strptime(item['due']['date'], "%Y-%m-%d").date() <= datetime.now().date():
+                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d").date()
+                now_date = datetime.now().date()
+                date_check = due_date <= now_date
+                debug(f"Check due date: {due_date} <= {now_date} = {date_check};")
+                if date_check:
                     select = True
 
         elif item['project_id'] == project_id:
