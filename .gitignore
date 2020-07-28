@@ -129,3 +129,5 @@ config.yaml
 config.yaml
 todoist_todo.txt
 debug.json
+debug.json
+*.mem

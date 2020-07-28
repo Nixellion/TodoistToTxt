@@ -10,5 +10,6 @@ max_items: 0
 filename_output: todoist_todo.txt
 export_file_as: False # Full path where to copy the file to. Must include filename
 show_completed_tasks: yes
+clean_up_completed_tasks: yes # Auto remove completed tasks from Todoist. Currently required to stay as Yes. If you dont like it downgrade to previous versions and wait for an update.
 debug: False
 show_due_date: yes
