@@ -65,7 +65,7 @@ def remember_task(task):
     if task not in lines:
         with open(today_path, "a+", encoding="utf-8") as f:
             f.write(task + "\n")
-        print(f"Task '{task}' added to memory for today.")
+        print(f"Task '{task}' added to memory for today. ({lines})")
     else:
         print(f"Task '{task}' already remembered as completed for today.")
 
@@ -103,7 +103,10 @@ def get_project_items(project_name):
         select = False
         if project_name == "Today":
             if item['due'] != None:
-                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d").date()
+                try:
+                    due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d").date()
+                except:
+                    due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S").date()
                 now_date = datetime.now().date()
                 date_check = due_date <= now_date
                 debug(f"Check due date: {due_date} <= {now_date} = {date_check};")
