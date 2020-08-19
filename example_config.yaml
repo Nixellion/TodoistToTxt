@@ -6,6 +6,7 @@ webdav_password: password # dav pass
 todoist_token: '00000000000000000000000000000'
 todoist_project: 'Today'
 todoist_append_inbox: True
+todoist_inbox_hide_lowpriority: True # Will hide priority level D
 max_items: 0
 filename_output: todoist_todo.txt
 export_file_as: False # Full path where to copy the file to. Must include filename

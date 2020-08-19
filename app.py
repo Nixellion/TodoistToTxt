@@ -138,12 +138,12 @@ def get_project_items(project_name):
     return items
 
 
-def text_from_items(items, filter_out=[]):
+def text_from_items(items, filter_out=[], hide_low_priority=False):
     # Create output text
     output_text = ""
     for i in sorted(items):
         # print (i)
-        if i not in filter_out:
+        if i not in filter_out and "(D) " not in i:
             output_text += i + "\n"
     return output_text
 
@@ -151,7 +151,7 @@ def text_from_items(items, filter_out=[]):
 def generate_output_text():
     project_items = get_project_items(config['todoist_project'])
     output_text = text_from_items(project_items)
-    inbox_text = text_from_items(get_project_items("Inbox"), filter_out=project_items)
+    inbox_text = text_from_items(get_project_items("Inbox"), filter_out=project_items, hide_low_priority=True)
     if config['todoist_append_inbox']:
         output_text = f'TODAY (Done: {completed_today()}):\n\n{output_text}\n\nINBOX:\n\n{inbox_text}'
     return output_text
