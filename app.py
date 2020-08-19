@@ -151,7 +151,7 @@ def text_from_items(items, filter_out=[], hide_low_priority=False):
 def generate_output_text():
     project_items = get_project_items(config['todoist_project'])
     output_text = text_from_items(project_items)
-    inbox_text = text_from_items(get_project_items("Inbox"), filter_out=project_items, hide_low_priority=True)
+    inbox_text = text_from_items(get_project_items("Inbox"), filter_out=project_items, hide_low_priority=config['todoist_inbox_hide_lowpriority'])
     if config['todoist_append_inbox']:
         output_text = f'TODAY (Done: {completed_today()}):\n\n{output_text}\n\nINBOX:\n\n{inbox_text}'
     return output_text
