@@ -70,3 +70,45 @@ copy_file_to: False # Full path where to copy the file to. Can include filename 
 show_completed_tasks: yes
 ```
 
+
+# Rainmeter skin
+
+```
+[Rainmeter]
+Author=Michael Davydov
+Update=1000
+DynamicWindowSize=1
+
+[MeasureLuaScript]
+Measure=Script
+ScriptFile="#CURRENTPATH#LuaTextFile.lua"
+FileToRead=PATH\TO\YOUR\FILE.txt
+
+[MeterDisplay]
+Meter=String
+MeasureName=MeasureLuaScript
+W=1000
+H=1360
+FontFace=Ubuntu Light
+FontSize=16
+FontColor=216,222,233,255
+SolidColor=20,20,20,1
+AntiAlias=1
+ClipString=1
+StringEffect=Shadow
+FontEffectColor=0,0,0,100
+InlineSetting=Color | 191,97,106,255
+InlinePattern=\(A\).*
+InlineSetting2=Color | 94,129,172,255
+InlinePattern2=\(C\).*
+InlineSetting3=Color | 216,222,233,255
+InlinePattern3=\(D\).*
+InlineSetting4=Strikethrough
+InlinePattern4=\nx.*
+InlineSetting5=Color | 208,135,112,255
+InlinePattern5=\(B\).*
+InlineSetting6=Color | 235,203,139,255
+InlinePattern6=(due:)(.*)
+InlineSetting7=Case | Upper
+InlinePattern7=(due:)(.*)
+```
