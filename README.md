@@ -21,7 +21,7 @@ sudo apt install git python3-pip
  
 - Clone repo anywhere you like
 ```
-cd \opt
+cd testDir/
 git clone https://github.com/Nixellion/TodoistToTxt.git
 ```
 - Install requirements from requirements.txt
