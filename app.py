@@ -164,7 +164,15 @@ def get_archival_text(api):
     tasks = []
 
     for item in api.state['items']:
-        text = f"({string.ascii_uppercase[4 - item['priority']]}) {item['content']} +{projects[item['project_id']]}"
+        text = f"({string.ascii_uppercase[4 - item['priority']]}) {item['content']}"
+        if item['project_id'] in projects:
+            text += f" +{projects[item['project_id']]}"
+        else:
+            print("="*80)
+            print(f"WARNING: Project {item['project_id']} not found in projects")
+            for k, v in projects:
+                print(k, v)
+            print("="*80)
         if item['due'] != None:
             text += f" due:{item['due']['date']}"
         tasks.append(text)
