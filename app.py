@@ -156,6 +156,24 @@ def generate_output_text():
         output_text = f'TODAY (Done: {completed_today()}):\n\n{output_text}\n\nINBOX:\n\n{inbox_text}'
     return output_text
 
+def get_archival_text(api):
+    projects = {}
+    for project in api.state['projects']:
+        projects[project['id']] = project['name']
+
+    tasks = []
+
+    for item in api.state['items']:
+        text = f"({string.ascii_uppercase[4 - item['priority']]}) {item['content']} +{projects[item['project_id']]}"
+        if item['due'] != None:
+            text += f" due:{item['due']['date']}"
+        tasks.append(text)
+
+    archival_text = ''
+    for task in sorted(tasks):
+        archival_text += task + "\n"
+
+    return archival_text
 
 if __name__ == "__main__":
     # TODO Make 'type' selection work
@@ -163,6 +181,7 @@ if __name__ == "__main__":
     local_filepath = os.path.join(appdir, config['filename_output'])
 
     output_text = generate_output_text()
+    backup_text = get_archival_text(api)
 
     debug(output_text)
 
@@ -195,9 +214,18 @@ if __name__ == "__main__":
             os.remove(tmp_fp)
             sys.exit()
 
+        # Write filtered file
         with tempfile.NamedTemporaryFile(mode="w+", encoding='utf-8', delete=False) as tmp:
             tmp.write(output_text)
             tmp_fp = tmp.name
 
         webdav.upload(tmp_fp, "{}/{}".format(config['webdav_directory'], config['filename_output']))
+        os.remove(tmp_fp)
+
+        # Write full backup file
+        with tempfile.NamedTemporaryFile(mode="w+", encoding='utf-8', delete=False) as tmp:
+            tmp.write(backup_text)
+            tmp_fp = tmp.name
+
+        webdav.upload(tmp_fp, "{}/{}".format(config['webdav_directory'], "todoist_full.txt"))
         os.remove(tmp_fp)
