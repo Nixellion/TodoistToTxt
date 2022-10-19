@@ -170,7 +170,7 @@ def get_archival_text(api):
         else:
             print("="*80)
             print(f"WARNING: Project {item['project_id']} not found in projects")
-            for k, v in projects:
+            for k, v in projects.items():
                 print(k, v)
             print("="*80)
         if item['due'] != None:
