@@ -4,6 +4,9 @@
  
  File can be copied to a specified directory and\or uploaded using webdav to the cloud, like Nextcloud.
  
+ On run it will create 2 files in the specified locations (local folder and webdav like Nextcloud):
+    - todoist_full.txt with full dump of all todo notes
+    - file with specified name and specified filters through config.yaml
  
  
 ## Requirements
