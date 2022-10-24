@@ -30,22 +30,21 @@ with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
 api = todoist.TodoistAPI(config['todoist_token'])
 api.sync()
 
+labels = {}
+for label in api.state['labels']:
+    labels[label['id']] = label['name']
+
+projects = {}
+for project in api.state['projects']:
+    projects[project['id']] = project['name']
+
 if config['debug']:
     with open(os.path.join(appdir, "debug.json"), "w+", encoding="utf-8") as f:
         f.write(pprint.pformat(api.state, indent=4))
 
-
 def debug(text):
     if config['debug']:
         print(text)
-
-
-# json.dumps(api.state, default=lambda o: '<not serializable>', indent=4)
-# Pprint for debug purposes
-# from pprint import PrettyPrinter
-# pp = PrettyPrinter(indent=4, width=10000)
-# pp.pprint(api.state)
-# input()
 
 today_path = os.path.join(datadir, datetime.now().strftime("%Y_%m_%d") + ".mem")
 
@@ -69,6 +68,29 @@ def remember_task(task):
     else:
         print(f"Task '{task}' already remembered as completed for today.")
 
+def todoist_item_to_txt(item):
+    if item['checked'] == 0:
+        text = ""
+    else:
+        text = "x "
+    text += f"({string.ascii_uppercase[4 - item['priority']]}) {item['content']}"
+    if item['project_id'] in projects:
+        text += f" +{projects[item['project_id']]}"
+    else:
+        print("="*80)
+        print(f"WARNING: Project {item['project_id']} not found in projects")
+        for k, v in projects.items():
+            print(k, v)
+        print("="*80)
+
+    for label_id in item['labels']:
+        if label_id in labels:
+            text += f" @{labels[label_id]}"
+
+    if config['show_due_date'] is True and item['due'] is not None:
+        text += f" due:{item['due']['date']}"
+        
+    return text
 
 def completed_today():
     with open(today_path, "r", encoding="utf-8") as f:
@@ -78,7 +100,6 @@ def completed_today():
         if line.strip():
             tasks += 1
     return tasks
-
 
 def get_project_id(name):
     project_id = None
@@ -92,7 +113,6 @@ def get_project_id(name):
                     break
             break
     return project_id
-
 
 def get_project_items(project_name):
     # Filter items
@@ -119,24 +139,22 @@ def get_project_items(project_name):
         if select:
             if config['max_items'] != 0 and len(items) > int(config['max_items']) - 1:
                 break
-            if item['checked'] == 0:
-                item_text = "({}) {}".format(string.ascii_uppercase[4 - item['priority']], item['content'])
-                if config['show_due_date'] and item['due'] != None:
-                    item_text = f"{item_text} due:{item['due']['date']}"
+            item_text = todoist_item_to_txt(item)
+
+            if item['checked'] == 0 or config['show_completed_tasks']:
                 items.append(item_text)
-            elif item['checked'] == 1:
+
+            # Cleanup completed tasks
+            if config['remove_completed_tasks'] and item['checked'] == 1:
                 remember_task(item['content'])
-                if config['show_completed_tasks']:
-                    items.append("x ({}) {}".format(string.ascii_uppercase[4 - item['priority']], item['content']))
                 if config['clean_up_completed_tasks']:
                     print(f"Deleting task '{item['content']}'")
                     task = api.items.get_by_id(item['id'])
                     task.delete()
                     api.commit()
-            else:
-                print("Something's not right, did Todoist change API? item['checked'] is not 0 or 1.")
+            elif item['checked'] != 1 and item['checked'] != 0:
+                print("Something's not right, did Todoist change API? item['checked'] is not 0 or 1:")
     return items
-
 
 def text_from_items(items, filter_out=[], hide_low_priority=False):
     # Create output text
@@ -147,7 +165,6 @@ def text_from_items(items, filter_out=[], hide_low_priority=False):
             output_text += i + "\n"
     return output_text
 
-
 def generate_output_text():
     project_items = get_project_items(config['todoist_project'])
     output_text = text_from_items(project_items)
@@ -156,42 +173,11 @@ def generate_output_text():
         output_text = f'TODAY (Done: {completed_today()}):\n\n{output_text}\n\nINBOX:\n\n{inbox_text}'
     return output_text
 
-def get_labels_data(api):
-    labels = {}
-    for label in api.state['labels']:
-        labels[label['id']] = label['name']
-    return labels
-
-def get_projects_data(api):
-    projects = {}
-    for project in api.state['projects']:
-        projects[project['id']] = project['name']
-    return projects
-
 def get_archival_text(api):
-    projects = get_projects_data(api)
-    labels = get_labels_data(api)
-
     tasks = []
 
     for item in api.state['items']:
-        text = f"({string.ascii_uppercase[4 - item['priority']]}) {item['content']}"
-        if item['project_id'] in projects:
-            text += f" +{projects[item['project_id']]}"
-        else:
-            print("="*80)
-            print(f"WARNING: Project {item['project_id']} not found in projects")
-            for k, v in projects.items():
-                print(k, v)
-            print("="*80)
-
-        for label_id in item['labels']:
-            if label_id in labels:
-                text += f" @{labels[label_id]}"
-
-        if item['due'] != None:
-            text += f" due:{item['due']['date']}"
-        tasks.append(text)
+        tasks.append(todoist_item_to_txt(item))
 
     archival_text = ''
     for task in sorted(tasks):
