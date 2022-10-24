@@ -156,10 +156,21 @@ def generate_output_text():
         output_text = f'TODAY (Done: {completed_today()}):\n\n{output_text}\n\nINBOX:\n\n{inbox_text}'
     return output_text
 
-def get_archival_text(api):
+def get_labels_data(api):
+    labels = {}
+    for label in api.state['labels']:
+        labels[label['id']] = label['name']
+    return labels
+
+def get_projects_data(api):
     projects = {}
     for project in api.state['projects']:
         projects[project['id']] = project['name']
+    return projects
+
+def get_archival_text(api):
+    projects = get_projects_data(api)
+    labels = get_labels_data(api)
 
     tasks = []
 
@@ -173,6 +184,11 @@ def get_archival_text(api):
             for k, v in projects.items():
                 print(k, v)
             print("="*80)
+
+        for label_id in item['labels']:
+            if label_id in labels:
+                text += f" @{labels[label_id]}"
+
         if item['due'] != None:
             text += f" due:{item['due']['date']}"
         tasks.append(text)
