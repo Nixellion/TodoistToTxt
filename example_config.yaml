@@ -14,3 +14,11 @@ show_completed_tasks: yes
 clean_up_completed_tasks: yes # Auto remove completed tasks from Todoist. Currently required to stay as Yes. If you dont like it downgrade to previous versions and wait for an update.
 debug: False
 show_due_date: yes
+icalendar:
+  - url: XXXXXXXX
+    priority: 4
+    tag: mycalendar
+    interval: 30
+local_timezone: Europe/London 
+local_timezone_offset: 0
+  

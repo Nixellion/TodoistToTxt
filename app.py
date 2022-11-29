@@ -7,8 +7,8 @@ import tempfile
 import sys
 # easywebdav python3 hack
 import easywebdav.client
-from datetime import date, datetime
-
+from datetime import date, datetime, timedelta, timezone
+import pytz
 import pprint
 
 easywebdav.basestring = str
@@ -120,13 +120,19 @@ def get_project_items(project_name):
     project_id = get_project_id(project_name)
     items = []
     for item in api.state['items']:
+        print(item)
         select = False
         if project_name == "Today":
             if item['due'] != None:
                 try:
                     due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d").date()
                 except:
-                    due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S").date()
+                    try:
+                        due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S").date()
+                    except:
+                        due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ").date()
+                        due_date += timedelta(hours=config['local_timezone_offset'])
+
                 now_date = datetime.now().date()
                 date_check = due_date <= now_date
                 debug(f"Check due date: {due_date} <= {now_date} = {date_check};")
@@ -187,6 +193,7 @@ def get_archival_text(api):
 
 if __name__ == "__main__":
     # TODO Make 'type' selection work
+    import icalendar_parser
 
     local_filepath = os.path.join(appdir, config['filename_output'])
 
@@ -239,3 +246,25 @@ if __name__ == "__main__":
 
         webdav.upload(tmp_fp, "{}/{}".format(config['webdav_directory'], "todoist_full.txt"))
         os.remove(tmp_fp)
+
+
+    # ICalendar sync
+    for id, icalendar_data in enumerate(config['icalendar']):
+        icalendar_cache_time_format = r"%Y.%m.%d %H:%M"
+        icalendar_mem_path = os.path.join(appdir, "data", f"icalendar_{id}.date")
+        if not os.path.exists(icalendar_mem_path):
+            with open(icalendar_mem_path, "w+") as f:
+                f.write((datetime.now() - timedelta(days=1)).strftime(icalendar_cache_time_format))
+
+        with open(icalendar_mem_path, "r") as f:
+            last_check = datetime.strptime(f.read(), icalendar_cache_time_format)
+        
+        if datetime.now() - last_check > timedelta(minutes=int(icalendar_data['interval'])):
+            icalendar_parser.sync_calendar(
+                calendar_url=icalendar_data['url'],
+                tag=icalendar_data['tag'],
+                priority=icalendar_data['priority']
+            )
+
+            with open(icalendar_mem_path, "w+") as f:
+                f.write(datetime.now().strftime(icalendar_cache_time_format))
