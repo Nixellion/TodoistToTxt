@@ -52,13 +52,14 @@ def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
             end = component.get("dtend")
             stamp = component.get("dtstamp")
             ical_summary = component.get("summary")
+            ical_uid = component.get("uid")
 
             if start.dt < utc_dt_now:
-                print(f"Skip {start.dt} < {utc_dt_now}: '{ical_summary}' ")
+                print(f"Skip {start.dt} < {utc_dt_now}: '{ical_summary}' [{ical_uid}] ")
                 continue
 
             print(f"START: {(start.dt)}; END: {end.dt}; STAMP: {stamp.dt}")
-            ical_uid = component.get("uid")
+            
             ical_uid_stamp = f"[UID: {ical_uid}]"
 
             ical_url = component.get("url")
@@ -72,16 +73,31 @@ Link: {ical_url}
 
 ---
 {ical_uid_stamp}"""
-            skip = False
+            existed = False
             for item in api.state['items']:
                 if ical_uid_stamp in item['description']:
                     print(f"Exists, delete: {content}")
                     print(item)
                     item.delete()
                     api.commit()
+                    existed = True
                     break
-
-            print(f"Adding task: {content}; {description}; {start.dt}")
+            
+            if existed:
+                print(f"Updating task: {content}; {description}; {start.dt}")
+            else:
+                print(f"Adding task: {content}; {description}; {start.dt}")
+                if "homeassistant" in config:
+                    url = f"{config['hass_url']}/api/services/script/turn_on"
+                    headers = {
+                        "Authorization": f"Bearer {config['hass_token']}",
+                        "content-type": "application/json",
+                    }
+                    response = requests.post(url, headers=headers, json={
+                        "entity_id": "script.customnotificationnyavr",
+                        "variables": {"title": f"New {tag} calendar event", "message": str(content) + "\nDue: "+start.dt.strftime(r"%Y.%m.%d %H:%M")}
+                        }
+                    )
             moscow = start.dt.astimezone(pytz.timezone('Europe/Moscow'))
             date_string = moscow.strftime(r"%Y.%m.%d at %H:%M")
 
@@ -96,6 +112,8 @@ Link: {ical_url}
             api.items.add(content, project_id=None, date_string=date_string, description=description, priority=priority)
             api.commit()
     api.sync()
+
+# sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
 
 
 # api = todoist.TodoistAPI(config['todoist_token'])
