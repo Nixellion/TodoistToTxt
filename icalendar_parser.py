@@ -88,13 +88,13 @@ Link: {ical_url}
             else:
                 print(f"Adding task: {content}; {description}; {start.dt}")
                 if "homeassistant" in config:
-                    url = f"{config['hass_url']}/api/services/script/turn_on"
+                    url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
                     headers = {
-                        "Authorization": f"Bearer {config['hass_token']}",
+                        "Authorization": f"Bearer {config['homeassistant']['hass_token']}",
                         "content-type": "application/json",
                     }
                     response = requests.post(url, headers=headers, json={
-                        "entity_id": "script.customnotificationnyavr",
+                        "entity_id": config['homeassistant']['script_entity_id'],
                         "variables": {"title": f"New {tag} calendar event", "message": str(content) + "\nDue: "+start.dt.strftime(r"%Y.%m.%d %H:%M")}
                         }
                     )
