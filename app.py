@@ -194,6 +194,26 @@ def get_archival_text(api):
 if __name__ == "__main__":
     # TODO Make 'type' selection work
     import icalendar_parser
+        # ICalendar sync
+    for id, icalendar_data in enumerate(config['icalendar']):
+        icalendar_cache_time_format = r"%Y.%m.%d %H:%M"
+        icalendar_mem_path = os.path.join(appdir, "data", f"icalendar_{id}.date")
+        if not os.path.exists(icalendar_mem_path):
+            with open(icalendar_mem_path, "w+") as f:
+                f.write((datetime.now() - timedelta(days=1)).strftime(icalendar_cache_time_format))
+
+        with open(icalendar_mem_path, "r") as f:
+            last_check = datetime.strptime(f.read(), icalendar_cache_time_format)
+        
+        if datetime.now() - last_check > timedelta(minutes=int(icalendar_data['interval'])):
+            icalendar_parser.sync_calendar(
+                calendar_url=icalendar_data['url'],
+                tag=icalendar_data['tag'],
+                priority=icalendar_data['priority']
+            )
+
+            with open(icalendar_mem_path, "w+") as f:
+                f.write(datetime.now().strftime(icalendar_cache_time_format))
 
     local_filepath = os.path.join(appdir, config['filename_output'])
 
@@ -248,23 +268,3 @@ if __name__ == "__main__":
         os.remove(tmp_fp)
 
 
-    # ICalendar sync
-    for id, icalendar_data in enumerate(config['icalendar']):
-        icalendar_cache_time_format = r"%Y.%m.%d %H:%M"
-        icalendar_mem_path = os.path.join(appdir, "data", f"icalendar_{id}.date")
-        if not os.path.exists(icalendar_mem_path):
-            with open(icalendar_mem_path, "w+") as f:
-                f.write((datetime.now() - timedelta(days=1)).strftime(icalendar_cache_time_format))
-
-        with open(icalendar_mem_path, "r") as f:
-            last_check = datetime.strptime(f.read(), icalendar_cache_time_format)
-        
-        if datetime.now() - last_check > timedelta(minutes=int(icalendar_data['interval'])):
-            icalendar_parser.sync_calendar(
-                calendar_url=icalendar_data['url'],
-                tag=icalendar_data['tag'],
-                priority=icalendar_data['priority']
-            )
-
-            with open(icalendar_mem_path, "w+") as f:
-                f.write(datetime.now().strftime(icalendar_cache_time_format))
