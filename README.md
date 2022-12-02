@@ -50,8 +50,6 @@ You can also use Webmin to create cronjobs with UI.
 
 # Todo
 
-- Currently it can only publish to webdav and into a file that's located in the same folder as the script. Improve to support custom txt location on the filesystem, as well as more cloud providers.
-- From todo.txt spec it currently only supports priority, which should be improved
 - Ability to create custom export templates (Jinja2? Or just format)
 
 
@@ -65,12 +63,33 @@ webdav_path: remote.php/webdav
 webdav_directory: /Documents/Notes/
 webdav_login: admin # dav login
 webdav_password: password # dav pass
-todoist_token: '00000000000000000000000000000'
-todoist_project: 'Inbox'
+todoist_token: 'XXXXXXXXXXXXXXXXXXXXXXXXX'
+todoist_project: 'Today'
+todoist_append_inbox: True
 max_items: 0
 filename_output: todoist_todo.txt
-copy_file_to: False # Full path where to copy the file to. Can include filename or just a directory.
+export_file_as: False # Full path where to copy the file to. Must include filename
 show_completed_tasks: yes
+clean_up_completed_tasks: yes  # Auto remove completed tasks from Todoist. Currently required to stay as Yes. If you dont like it downgrade to previous versions and wait for an update.
+todoist_inbox_hide_lowpriority: True  # Will hide priority level D
+test_only: False
+show_creation_date: no
+show_completion_date: no
+show_project_tag: no
+show_due_date: yes
+remove_completed_tasks: yes
+debug: True
+icalendar:  
+  - url: https://calendar.google.com/xxxxxx  # CalDav URL of your calendar, Google, Yandex, Nextcloud, any that supports it
+    priority: 4
+    tag: my_calendar
+    interval: 30
+local_timezone: Europe/London 
+local_timezone_offset: 0 # Because I'm lazy, please enter your time offset in hours for your timezone above, negative or positive number
+homeassistant:
+  hass_token: xxxxxxxxx # Home asssitant token which you can get from the UI under your user profile page (at least at the time of writing this)
+  hass_url: http://192.168.1.2:8123 # Replace with your local or external home assistant url, *without* the trailing slash
+  script_entity_id: script.my_notification # Script that will be triggered when event is processed. "title" and "message" attributes will be POSTed.
 ```
 
 

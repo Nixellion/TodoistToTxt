@@ -1,4 +1,4 @@
-webdav_url: drive.davydov.tech # Use None or False if you don't wish to copy to webdav
+webdav_url: drive.domain.com # Use None or False if you don't wish to copy to webdav
 webdav_path: remote.php/webdav
 webdav_directory: /Documents/Notes/
 webdav_login: admin # dav login
