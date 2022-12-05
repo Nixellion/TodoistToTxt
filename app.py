@@ -206,6 +206,7 @@ if __name__ == "__main__":
             last_check = datetime.strptime(f.read(), icalendar_cache_time_format)
         
         if datetime.now() - last_check > timedelta(minutes=int(icalendar_data['interval'])):
+            print(f"Checking calendar: {icalendar_data['tag']}")
             icalendar_parser.sync_calendar(
                 calendar_url=icalendar_data['url'],
                 tag=icalendar_data['tag'],
@@ -214,6 +215,8 @@ if __name__ == "__main__":
 
             with open(icalendar_mem_path, "w+") as f:
                 f.write(datetime.now().strftime(icalendar_cache_time_format))
+        else:
+            print(f"Skip checking calendar, too soon: {icalendar_data['tag']}")
 
     local_filepath = os.path.join(appdir, config['filename_output'])
 
