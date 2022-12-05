@@ -120,7 +120,7 @@ def get_project_items(project_name):
     project_id = get_project_id(project_name)
     items = []
     for item in api.state['items']:
-        print(item)
+        # print(item)
         select = False
         if project_name == "Today":
             if item['due'] != None:
@@ -135,7 +135,7 @@ def get_project_items(project_name):
 
                 now_date = datetime.now().date()
                 date_check = due_date <= now_date
-                debug(f"Check due date: {due_date} <= {now_date} = {date_check};")
+                # debug(f"Check due date: {due_date} <= {now_date} = {date_check};")
                 if date_check:
                     select = True
 

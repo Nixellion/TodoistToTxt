@@ -58,7 +58,7 @@ def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
                 print(f"Skip {start.dt} < {utc_dt_now}: '{ical_summary}' [{ical_uid}] ")
                 continue
 
-            print(f"START: {(start.dt)}; END: {end.dt}; STAMP: {stamp.dt}")
+            print(f"START: {(start.dt)}; END: {end.dt}; STAMP: {stamp.dt}; SUMMARY: {ical_summary}")
             
             ical_uid_stamp = f"[UID: {ical_uid}]"
 
