@@ -95,15 +95,32 @@ Link: {ical_url}
                     }
                     )
                     # print(response.text)
-                    existed = True
-                    time.sleep(1)
-                    # break
+                    existed = item
+                    time.sleep(0.2)
+                    break
 
             moscow = start.dt.astimezone(pytz.timezone('Europe/Moscow'))
             date_string = moscow.strftime(r"%Y.%m.%d at %H:%M")
 
-            if existed:
+            if existed is not False and (existed.get("content", "") != content or existed.get("date_string", "") != date_string or existed.get("description", "") != description):
                 print(f"Updating task: {content}; {description}; {date_string}")
+                task = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
+                    "commands": [
+                        {
+                            "type": "item_update",
+                            "uuid": str(uuid4),
+                            "args": {"id": item['id'],
+                                     "content": content,
+                                     "description": description,
+                                     "date_string": date_string
+                                     }
+                        }
+                    ]
+                }
+                ).text
+                # print("TASK")
+                # print(task)
+                # print("===")
             else:
                 print(f"Adding task: {content}; {description}; {date_string}")
                 if "homeassistant" in config:
@@ -121,6 +138,14 @@ Link: {ical_url}
                     except Exception as e:
                         print("ERROR!", e)
 
+                task = requests.post("https://api.todoist.com/sync/v9/items/add", headers=todoist_headers, json={
+                    "content": content,
+                    "description": description,
+                    "date_string": date_string,
+                    "priority": priority
+                }
+                ).text
+
             # api.items.add(content=content, description=description, due={'date': start.dt.strftime(r'%Y-%m-%dT%H:%M:%S'),
             #                                                             'is_recurring': False,
             #                                                             'lang': 'en',
@@ -131,20 +156,6 @@ Link: {ical_url}
 
             # task = api.items.add(content, project_id=None, date_string=date_string, description=description, priority=priority)
             # task = api.add_item(content, project_id=None, date_string=date_string, description=description, priority=priority)
-
-            task = requests.post("https://api.todoist.com/sync/v9/items/add", headers=todoist_headers, json={
-                "content": content,
-                "description": description,
-                "date_string": date_string,
-                "priority": priority
-            }
-            ).text
-            print("TASK")
-            print(task)
-            print("===")
-            time.sleep(1)
-            time.sleep(1)
-    time.sleep(1)
 
 
 # sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)

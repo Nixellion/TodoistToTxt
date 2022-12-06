@@ -1,3 +1,5 @@
+# TODO: Remove dependence on todoist python api, it's broken and not needed
+
 import os
 import yaml
 import json
