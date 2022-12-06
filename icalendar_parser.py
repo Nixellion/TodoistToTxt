@@ -83,17 +83,17 @@ Link: {ical_url}
             for item in items['items']:
                 # print(item)
                 if ical_uid_stamp in item['description']:
-                    print(f"Exists, delete: {item['content']}")
-                    response = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
-                        "commands": [
-                            {
-                                "type": "item_delete",
-                                "uuid": str(uuid4),
-                                "args": {"id": item['id']}
-                            }
-                        ]
-                    }
-                    )
+                    print(f"Exists: {item['content']}")
+                    # response = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
+                    #     "commands": [
+                    #         {
+                    #             "type": "item_delete",
+                    #             "uuid": str(uuid4),
+                    #             "args": {"id": item['id']}
+                    #         }
+                    #     ]
+                    # }
+                    # )
                     # print(response.text)
                     existed = item
                     time.sleep(0.2)
