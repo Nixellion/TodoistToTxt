@@ -102,25 +102,28 @@ Link: {ical_url}
             moscow = start.dt.astimezone(pytz.timezone('Europe/Moscow'))
             date_string = moscow.strftime(r"%Y.%m.%d at %H:%M")
 
-            if existed is not False and (existed.get("content", "") != content or existed.get("date_string", "") != date_string or existed.get("description", "") != description):
-                print(f"Updating task: {content}; {description}; {date_string}")
-                task = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
-                    "commands": [
-                        {
-                            "type": "item_update",
-                            "uuid": str(uuid4),
-                            "args": {"id": item['id'],
-                                     "content": content,
-                                     "description": description,
-                                     "date_string": date_string
-                                     }
-                        }
-                    ]
-                }
-                ).text
-                # print("TASK")
-                # print(task)
-                # print("===")
+            if existed is not False:
+                if existed.get("content", "") != content or existed.get("date_string", "") != date_string or existed.get("description", "") != description:
+                    print(f"Updating task: {content}; {description}; {date_string}")
+                    task = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
+                        "commands": [
+                            {
+                                "type": "item_update",
+                                "uuid": str(uuid4),
+                                "args": {"id": item['id'],
+                                        "content": content,
+                                        "description": description,
+                                        "date_string": date_string
+                                        }
+                            }
+                        ]
+                    }
+                    ).text
+                    # print("TASK")
+                    # print(task)
+                    # print("===")
+                else:
+                    print(f"No changes in task: {content}; {description}; {date_string}")
             else:
                 print(f"Adding task: {content}; {description}; {date_string}")
                 if "homeassistant" in config:
