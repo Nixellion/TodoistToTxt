@@ -3,11 +3,11 @@ from io import BytesIO
 from icalendar import Calendar, Event
 from datetime import datetime
 from pytz import UTC  # timezone
-import todoist
 import yaml
 import os
 import pytz
 import time
+from uuid import uuid4
 
 appdir = os.path.dirname(os.path.realpath(__file__))  # rp, realpath
 
@@ -20,6 +20,11 @@ naive = datetime.now()
 local_dt = local.localize(naive, is_dst=None)
 utc_dt_now = local_dt.astimezone(pytz.utc)
 
+todoist_headers = {
+    "Authorization": f"Bearer {config['todoist_token']}",
+    "content-type": "application/json",
+}
+
 
 def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
     print(f"sync_calendar: {calendar_url}; {tag}; {priority}")
@@ -28,12 +33,7 @@ def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
 
     ical = Calendar.from_ical(ical_data.read())
 
-    api = todoist.TodoistAPI(config['todoist_token'])
-    api.sync()
-    api.commit()
-
-
-    a = []
+    # a = []
 
     # ['TZOFFSETFROM', 'URL', 'RRULE', 'ORGANIZER', 'X-WR-CALNAME',
     #  'RDATE', 'CALSCALE', 'RECURRENCE-ID', 'VERSION', 'UID', 'TZID',
@@ -60,7 +60,6 @@ def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
 
             ical_uid_stamp = f"[UID: {ical_uid}]"
             print(f"START: {(start.dt)}; END: {end.dt}; STAMP: {stamp.dt}; SUMMARY: {ical_summary}; {ical_uid_stamp}")
-            
 
             ical_url = component.get("url")
             ical_description = component.get("description", "")
@@ -74,19 +73,32 @@ Link: {ical_url}
 ---
 {ical_uid_stamp}"""
             existed = False
-            api.sync()
-            for item in api.state['items']:
-                print(item)
+
+            items = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
+                "sync_token": "*",
+                "resource_types": ["items"]
+            }
+            ).json()
+
+            for item in items['items']:
+                # print(item)
                 if ical_uid_stamp in item['description']:
-                    print(f"Exists, delete: {content}")
-                    print(item)
-                    item.delete()
-                    api.commit()
+                    print(f"Exists, delete: {item['content']}")
+                    response = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
+                        "commands": [
+                            {
+                                "type": "item_delete",
+                                "uuid": str(uuid4),
+                                "args": {"id": item['id']}
+                            }
+                        ]
+                    }
+                    )
+                    # print(response.text)
                     existed = True
                     time.sleep(1)
-                    break
-                
-            
+                    # break
+
             moscow = start.dt.astimezone(pytz.timezone('Europe/Moscow'))
             date_string = moscow.strftime(r"%Y.%m.%d at %H:%M")
 
@@ -103,12 +115,11 @@ Link: {ical_url}
                         }
                         response = requests.post(url, headers=headers, json={
                             "entity_id": config['homeassistant']['script_entity_id'],
-                            "variables": {"title": f"New {tag} calendar event", "message": str(content) + "\nDue: "+start.dt.strftime(r"%Y.%m.%d %H:%M")}
-                            }
+                            "variables": {"title": f"New {tag} calendar event", "message": str(content) + "\nDue: " + start.dt.strftime(r"%Y.%m.%d %H:%M")}
+                        }
                         )
                     except Exception as e:
                         print("ERROR!", e)
-            
 
             # api.items.add(content=content, description=description, due={'date': start.dt.strftime(r'%Y-%m-%dT%H:%M:%S'),
             #                                                             'is_recurring': False,
@@ -120,29 +131,23 @@ Link: {ical_url}
 
             # task = api.items.add(content, project_id=None, date_string=date_string, description=description, priority=priority)
             # task = api.add_item(content, project_id=None, date_string=date_string, description=description, priority=priority)
-            url = f"https://api.todoist.com/sync/v9/items/add"
-            headers = {
-                "Authorization": f"Bearer {config['todoist_token']}",
-                "content-type": "application/json",
+
+            task = requests.post("https://api.todoist.com/sync/v9/items/add", headers=todoist_headers, json={
+                "content": content,
+                "description": description,
+                "date_string": date_string,
+                "priority": priority
             }
-            task = requests.post(url, headers=headers, json={
-                    "content": content,
-                    "description": description,
-                    "date_string": date_string,
-                    "priority": priority
-                }
             ).text
             print("TASK")
             print(task)
             print("===")
             time.sleep(1)
-            api.commit()
             time.sleep(1)
-    api.sync()
     time.sleep(1)
 
-# sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
 
+sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
 
 # api = todoist.TodoistAPI(config['todoist_token'])
 # api.sync()
