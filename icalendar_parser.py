@@ -147,7 +147,7 @@ Link: {ical_url}
     time.sleep(1)
 
 
-sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
+# sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
 
 # api = todoist.TodoistAPI(config['todoist_token'])
 # api.sync()
