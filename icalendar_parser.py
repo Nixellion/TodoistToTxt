@@ -7,7 +7,7 @@ import todoist
 import yaml
 import os
 import pytz
-
+import time
 
 appdir = os.path.dirname(os.path.realpath(__file__))  # rp, realpath
 
@@ -31,7 +31,6 @@ def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
     api = todoist.TodoistAPI(config['todoist_token'])
     api.sync()
 
-    api.commit()
 
     a = []
 
@@ -81,25 +80,32 @@ Link: {ical_url}
                     item.delete()
                     api.commit()
                     existed = True
+                    time.sleep(1)
                     break
+                
             
-            if existed:
-                print(f"Updating task: {content}; {description}; {start.dt}")
-            else:
-                print(f"Adding task: {content}; {description}; {start.dt}")
-                if "homeassistant" in config:
-                    url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
-                    headers = {
-                        "Authorization": f"Bearer {config['homeassistant']['hass_token']}",
-                        "content-type": "application/json",
-                    }
-                    response = requests.post(url, headers=headers, json={
-                        "entity_id": config['homeassistant']['script_entity_id'],
-                        "variables": {"title": f"New {tag} calendar event", "message": str(content) + "\nDue: "+start.dt.strftime(r"%Y.%m.%d %H:%M")}
-                        }
-                    )
             moscow = start.dt.astimezone(pytz.timezone('Europe/Moscow'))
             date_string = moscow.strftime(r"%Y.%m.%d at %H:%M")
+
+            if existed:
+                print(f"Updating task: {content}; {description}; {date_string}")
+            else:
+                print(f"Adding task: {content}; {description}; {date_string}")
+                if "homeassistant" in config:
+                    try:
+                        url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
+                        headers = {
+                            "Authorization": f"Bearer {config['homeassistant']['hass_token']}",
+                            "content-type": "application/json",
+                        }
+                        response = requests.post(url, headers=headers, json={
+                            "entity_id": config['homeassistant']['script_entity_id'],
+                            "variables": {"title": f"New {tag} calendar event", "message": str(content) + "\nDue: "+start.dt.strftime(r"%Y.%m.%d %H:%M")}
+                            }
+                        )
+                    except Exception as e:
+                        print("ERROR!", e)
+            
 
             # api.items.add(content=content, description=description, due={'date': start.dt.strftime(r'%Y-%m-%dT%H:%M:%S'),
             #                                                             'is_recurring': False,
@@ -109,11 +115,30 @@ Link: {ical_url}
 
             #              project_id=None, priority=priority)
 
-            api.items.add(content, project_id=None, date_string=date_string, description=description, priority=priority)
+            # task = api.items.add(content, project_id=None, date_string=date_string, description=description, priority=priority)
+            # task = api.add_item(content, project_id=None, date_string=date_string, description=description, priority=priority)
+            url = f"https://api.todoist.com/sync/v9/items/add"
+            headers = {
+                "Authorization": f"Bearer {config['todoist_token']}",
+                "content-type": "application/json",
+            }
+            task = requests.post(url, headers=headers, json={
+                    "content": content,
+                    "description": description,
+                    "date_string": date_string,
+                    "priority": priority
+                }
+            )
+            print("TASK")
+            print(task)
+            print("===")
+            time.sleep(1)
             api.commit()
+            time.sleep(1)
     api.sync()
+    time.sleep(1)
 
-# sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
+sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
 
 
 # api = todoist.TodoistAPI(config['todoist_token'])
