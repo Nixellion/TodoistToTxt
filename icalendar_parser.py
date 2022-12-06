@@ -30,6 +30,7 @@ def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
 
     api = todoist.TodoistAPI(config['todoist_token'])
     api.sync()
+    api.commit()
 
 
     a = []
@@ -57,9 +58,9 @@ def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
                 print(f"Skip {start.dt} < {utc_dt_now}: '{ical_summary}' [{ical_uid}] ")
                 continue
 
-            print(f"START: {(start.dt)}; END: {end.dt}; STAMP: {stamp.dt}; SUMMARY: {ical_summary}")
-            
             ical_uid_stamp = f"[UID: {ical_uid}]"
+            print(f"START: {(start.dt)}; END: {end.dt}; STAMP: {stamp.dt}; SUMMARY: {ical_summary}; {ical_uid_stamp}")
+            
 
             ical_url = component.get("url")
             ical_description = component.get("description", "")
@@ -73,7 +74,9 @@ Link: {ical_url}
 ---
 {ical_uid_stamp}"""
             existed = False
+            api.sync()
             for item in api.state['items']:
+                print(item)
                 if ical_uid_stamp in item['description']:
                     print(f"Exists, delete: {content}")
                     print(item)
@@ -128,7 +131,7 @@ Link: {ical_url}
                     "date_string": date_string,
                     "priority": priority
                 }
-            )
+            ).text
             print("TASK")
             print(task)
             print("===")
@@ -138,7 +141,7 @@ Link: {ical_url}
     api.sync()
     time.sleep(1)
 
-sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
+# sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
 
 
 # api = todoist.TodoistAPI(config['todoist_token'])
