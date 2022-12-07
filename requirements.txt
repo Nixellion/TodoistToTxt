@@ -1,5 +1,4 @@
 PyYaml
-todoist-python
 easywebdav
 icalendar
 requests

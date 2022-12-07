@@ -1,17 +1,12 @@
-# TODO: Remove dependence on todoist python api, it's broken and not needed
-
 import os
 import yaml
-import json
-import todoist
+from todoist_api import TodoistAPI
 import string
 import tempfile
 import sys
 # easywebdav python3 hack
 import easywebdav.client
-from datetime import date, datetime, timedelta, timezone
-import pytz
-import pprint
+from datetime import date, datetime, timedelta
 
 easywebdav.basestring = str
 easywebdav.client.basestring = str
@@ -29,20 +24,19 @@ with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
     config = yaml.load(f.read())
 
 # Fetch todoist items
-api = todoist.TodoistAPI(config['todoist_token'])
-api.sync()
+api = TodoistAPI(config['todoist_token'])
 
 labels = {}
-for label in api.state['labels']:
+for label in api.get_items("labels"):
     labels[label['id']] = label['name']
 
 projects = {}
-for project in api.state['projects']:
+for project in api.get_items("projects"):
     projects[project['id']] = project['name']
 
-if config['debug']:
-    with open(os.path.join(appdir, "debug.json"), "w+", encoding="utf-8") as f:
-        f.write(pprint.pformat(api.state, indent=4))
+# if config['debug']:
+#     with open(os.path.join(appdir, "debug.json"), "w+", encoding="utf-8") as f:
+#         f.write(pprint.pformat(api.state, indent=4))
 
 def debug(text):
     if config['debug']:
@@ -106,13 +100,9 @@ def completed_today():
 def get_project_id(name):
     project_id = None
     # Find required project
-    for key, value in api.state.items():
-        if key == 'projects':
-            # print (value)
-            for project in value:
-                if project['name'] == name:
-                    project_id = project['id']
-                    break
+    for project in api.get_items("projects"):
+        if project['name'] == name:
+            project_id = project['id']
             break
     return project_id
 
@@ -121,7 +111,7 @@ def get_project_items(project_name):
     # Filter completed out
     project_id = get_project_id(project_name)
     items = []
-    for item in api.state['items']:
+    for item in api.get_items():
         # print(item)
         select = False
         if project_name == "Today":
@@ -157,9 +147,7 @@ def get_project_items(project_name):
                 remember_task(item['content'])
                 if config['clean_up_completed_tasks']:
                     print(f"Deleting task '{item['content']}'")
-                    task = api.items.get_by_id(item['id'])
-                    task.delete()
-                    api.commit()
+                    api.delete_item(item)
             elif item['checked'] != 1 and item['checked'] != 0:
                 print("Something's not right, did Todoist change API? item['checked'] is not 0 or 1:")
     return items
@@ -181,10 +169,10 @@ def generate_output_text():
         output_text = f'TODAY (Done: {completed_today()}):\n\n{output_text}\n\nINBOX:\n\n{inbox_text}'
     return output_text
 
-def get_archival_text(api):
+def get_archival_text(api : TodoistAPI):
     tasks = []
 
-    for item in api.state['items']:
+    for item in api.get_items():
         tasks.append(todoist_item_to_txt(item))
 
     archival_text = ''
