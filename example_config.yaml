@@ -19,6 +19,15 @@ show_project_tag: no
 show_due_date: yes
 remove_completed_tasks: yes
 debug: True
+max_backups: 100
+asana:
+  - personal_access_token: x/xxxxxxxxxx...
+    interval: 30
+    tag: my_asana
+    priority: 4
+    task_params:
+      workspace: breakingbad.com
+      assignee: Walter White
 icalendar:  
   - url: https://calendar.google.com/xxxxxx  # CalDav URL of your calendar, Google, Yandex, Nextcloud, any that supports it
     priority: 4

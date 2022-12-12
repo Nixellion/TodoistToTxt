@@ -9,6 +9,13 @@
     - file with specified name and specified filters through config.yaml
  
  
+## Features
+
+- Archive all your Todoist tasks into a todo.txt spec file
+- Write specific project, today's tasks or inbox into a todo.txt spec file
+- Create new Todoist tasks from calendars using CalDAV
+- Create new Todoist tasks from Asana tasks (WIP)
+
 ## Requirements
 - git
 - python3

@@ -131,3 +131,9 @@ todoist_todo.txt
 debug.json
 debug.json
 *.mem
+
+restore.txt
+backups/
+data/
+debug.json
+test_*

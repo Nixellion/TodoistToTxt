@@ -1,12 +1,18 @@
+# TODO: https://developers.asana.com/docs/get-multiple-tasks
+
 import os
+import shutil
 import yaml
 from todoist_api import TodoistAPI
+from asana_api import AsanaAPI
 import string
 import tempfile
 import sys
 # easywebdav python3 hack
 import easywebdav.client
 from datetime import date, datetime, timedelta
+from pprint import PrettyPrinter
+pp = PrettyPrinter()
 
 easywebdav.basestring = str
 easywebdav.client.basestring = str
@@ -24,23 +30,25 @@ with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
     config = yaml.load(f.read())
 
 # Fetch todoist items
-api = TodoistAPI(config['todoist_token'])
+todoist_api = TodoistAPI(config['todoist_token'])
 
 labels = {}
-for label in api.get_items("labels"):
+for label in todoist_api.get_items("labels"):
     labels[label['id']] = label['name']
 
 projects = {}
-for project in api.get_items("projects"):
+for project in todoist_api.get_items("projects"):
     projects[project['id']] = project['name']
 
 # if config['debug']:
 #     with open(os.path.join(appdir, "debug.json"), "w+", encoding="utf-8") as f:
 #         f.write(pprint.pformat(api.state, indent=4))
 
+
 def debug(text):
     if config['debug']:
         print(text)
+
 
 today_path = os.path.join(datadir, datetime.now().strftime("%Y_%m_%d") + ".mem")
 
@@ -64,6 +72,7 @@ def remember_task(task):
     else:
         print(f"Task '{task}' already remembered as completed for today.")
 
+
 def todoist_item_to_txt(item):
     if item['checked'] == 0:
         text = ""
@@ -73,11 +82,11 @@ def todoist_item_to_txt(item):
     if item['project_id'] in projects:
         text += f" +{projects[item['project_id']]}"
     else:
-        print("="*80)
+        print("=" * 80)
         print(f"WARNING: Project {item['project_id']} not found in projects")
         for k, v in projects.items():
             print(k, v)
-        print("="*80)
+        print("=" * 80)
 
     for label_id in item['labels']:
         if label_id in labels:
@@ -85,8 +94,9 @@ def todoist_item_to_txt(item):
 
     if config['show_due_date'] is True and item['due'] is not None:
         text += f" due:{item['due']['date']}"
-        
+
     return text
+
 
 def completed_today():
     with open(today_path, "r", encoding="utf-8") as f:
@@ -97,21 +107,23 @@ def completed_today():
             tasks += 1
     return tasks
 
+
 def get_project_id(name):
     project_id = None
     # Find required project
-    for project in api.get_items("projects"):
+    for project in todoist_api.get_items("projects"):
         if project['name'] == name:
             project_id = project['id']
             break
     return project_id
+
 
 def get_project_items(project_name):
     # Filter items
     # Filter completed out
     project_id = get_project_id(project_name)
     items = []
-    for item in api.get_items():
+    for item in todoist_api.get_items():
         # print(item)
         select = False
         if project_name == "Today":
@@ -147,10 +159,11 @@ def get_project_items(project_name):
                 remember_task(item['content'])
                 if config['clean_up_completed_tasks']:
                     print(f"Deleting task '{item['content']}'")
-                    api.delete_item(item)
+                    todoist_api.delete_item(item)
             elif item['checked'] != 1 and item['checked'] != 0:
                 print("Something's not right, did Todoist change API? item['checked'] is not 0 or 1:")
     return items
+
 
 def text_from_items(items, filter_out=[], hide_low_priority=False):
     # Create output text
@@ -161,15 +174,18 @@ def text_from_items(items, filter_out=[], hide_low_priority=False):
             output_text += i + "\n"
     return output_text
 
+
 def generate_output_text():
     project_items = get_project_items(config['todoist_project'])
     output_text = text_from_items(project_items)
-    inbox_text = text_from_items(get_project_items("Inbox"), filter_out=project_items, hide_low_priority=config['todoist_inbox_hide_lowpriority'])
+    inbox_text = text_from_items(get_project_items("Inbox"), filter_out=project_items,
+                                 hide_low_priority=config['todoist_inbox_hide_lowpriority'])
     if config['todoist_append_inbox']:
         output_text = f'TODAY (Done: {completed_today()}):\n\n{output_text}\n\nINBOX:\n\n{inbox_text}'
     return output_text
 
-def get_archival_text(api : TodoistAPI):
+
+def get_archival_text(api: TodoistAPI):
     tasks = []
 
     for item in api.get_items():
@@ -181,20 +197,22 @@ def get_archival_text(api : TodoistAPI):
 
     return archival_text
 
+
 if __name__ == "__main__":
     # TODO Make 'type' selection work
+    # region ical
     import icalendar_parser
-        # ICalendar sync
+    # ICalendar sync
     for id, icalendar_data in enumerate(config['icalendar']):
-        icalendar_cache_time_format = r"%Y.%m.%d %H:%M"
-        icalendar_mem_path = os.path.join(appdir, "data", f"icalendar_{id}.date")
-        if not os.path.exists(icalendar_mem_path):
-            with open(icalendar_mem_path, "w+") as f:
-                f.write((datetime.now() - timedelta(days=1)).strftime(icalendar_cache_time_format))
+        ical_cache_time_format = r"%Y.%m.%d %H:%M"
+        ical_mem_path = os.path.join(appdir, "data", f"icalendar_{id}.date")
+        if not os.path.exists(ical_mem_path):
+            with open(ical_mem_path, "w+") as f:
+                f.write((datetime.now() - timedelta(days=1)).strftime(ical_cache_time_format))
 
-        with open(icalendar_mem_path, "r") as f:
-            last_check = datetime.strptime(f.read(), icalendar_cache_time_format)
-        
+        with open(ical_mem_path, "r") as f:
+            last_check = datetime.strptime(f.read(), ical_cache_time_format)
+
         if datetime.now() - last_check > timedelta(minutes=int(icalendar_data['interval'])):
             print(f"Checking calendar: {icalendar_data['tag']}")
             icalendar_parser.sync_calendar(
@@ -203,15 +221,128 @@ if __name__ == "__main__":
                 priority=icalendar_data['priority']
             )
 
-            with open(icalendar_mem_path, "w+") as f:
-                f.write(datetime.now().strftime(icalendar_cache_time_format))
+            with open(ical_mem_path, "w+") as f:
+                f.write(datetime.now().strftime(ical_cache_time_format))
         else:
             print(f"Skip checking calendar, too soon: {icalendar_data['tag']}")
+    # endregion
+
+    # region Asana
+    for id, asana_profile in enumerate(config['asana']):
+        asana_cache_time_format = r"%Y.%m.%d %H:%M"
+        asana_mem_path = os.path.join(appdir, "data", f"asana_{id}.date")
+        if not os.path.exists(asana_mem_path):
+            with open(asana_mem_path, "w+") as f:
+                f.write((datetime.now() - timedelta(days=1)).strftime(asana_cache_time_format))
+
+        with open(asana_mem_path, "r") as f:
+            last_check = datetime.strptime(f.read(), asana_cache_time_format)
+
+        if datetime.now() - last_check > timedelta(minutes=int(asana_profile['interval'])):
+            asana_api = AsanaAPI(asana_profile['personal_access_token'])
+            asana_tag = asana_profile['tag']
+            asana_tasks = asana_api.get_tasks(asana_profile['task_params'])
+            for asana_task in asana_tasks:
+                start_date = datetime.strptime(
+                    asana_task['start_on'], r"%Y-%m-%d") if asana_task.get('start_on', False) else None
+                due_date = datetime.strptime(
+                    asana_task['due_on'], r"%Y-%m-%d") if asana_task.get('due_on', False) else None
+                if due_date and due_date < datetime.now():
+                    continue
+
+                task_uid = f"[asana_{asana_task['gid']}]"
+                todoist_tasks = todoist_api.get_items()
+
+                remove_tasks = []
+                for todoist_task in todoist_tasks:
+                    if task_uid in todoist_task['description']:
+                        print(f"Removing task, part of Asana Sync: {asana_task['name']}")
+                        remove_tasks.append(todoist_task)
+                print(todoist_api.delete_items(remove_tasks))
+
+                if start_date:
+                    # Create "START TASK:"
+                    this_uid = task_uid + "-[start]"
+                    content = f"{asana_tag.upper()} - START TASK: {asana_task['name']} @{asana_tag} "
+
+                    # TODO: Use `html_notes` with html to markdown
+                    description = f"""{asana_task['notes']}
+
+Link: {asana_task['permalink_url']}
+
+---
+{this_uid}"""
+
+                    todoist_api.add_item(
+                        {
+                            "content": content,
+                            "description": description,
+                            "date_string": start_date.strftime(r"%Y.%m.%d"),
+                            "priority": asana_profile['priority']
+                        }
+                    )
+
+                if due_date:
+                    # CREATE "FINISH TASK:"
+                    # print("="*80)
+                    # print(pp.pprint(asana_task))
+                    # print("="*80)
+                    this_uid = task_uid + "-[finish]"
+                    content = f"{asana_tag.upper()} - FINISH TASK: {asana_task['name']} @{asana_tag}"
+
+                    # TODO: Use `html_notes` with html to markdown
+                    description = f"""{asana_task['notes']}
+
+Link: {asana_task['permalink_url']}
+
+---
+{this_uid}"""
+
+                    todoist_api.add_item(
+                        {
+                            "content": content,
+                            "description": description,
+                            "date_string": due_date.strftime(r"%Y.%m.%d"),
+                            "priority": asana_profile['priority']
+                        }
+                    )
+
+                if start_date and due_date:
+                    # CREATE "WORK ON TASK:"
+                    this_uid = task_uid + "-[work]"
+                    delta = due_date - start_date
+                    for i in range(1, delta.days):
+                        day = start_date + timedelta(days=i)
+
+                        content = f"{asana_tag.upper()} - WORK ON TASK: {asana_task['name']} @{asana_tag} "
+
+                        # TODO: Use `html_notes` with html to markdown
+                        description = f"""{asana_task['notes']}
+
+    Link: {asana_task['permalink_url']}
+
+    ---
+    {this_uid}"""
+
+                        todoist_api.add_item(
+                            {
+                                "content": content,
+                                "description": description,
+                                "date_string": day.strftime(r"%Y.%m.%d"),
+                                "priority": asana_profile['priority']
+                            }
+                        )
+            with open(asana_mem_path, "w+") as f:
+                f.write(datetime.now().strftime(asana_cache_time_format))
+        else:
+            print(f"Skip checking Asana, too soon: {asana_profile['tag']}")
+
+    # endregion
 
     local_filepath = os.path.join(appdir, config['filename_output'])
 
     output_text = generate_output_text()
-    backup_text = get_archival_text(api)
+    backup_text = get_archival_text(todoist_api)
 
     debug(output_text)
 
@@ -225,6 +356,8 @@ if __name__ == "__main__":
                 sys.exit()
         with open(config['export_file_as'], 'w+', encoding='utf-8', errors='ignore') as f:
             f.write(output_text)
+
+    print(f"TodoistAPI calls made: {todoist_api.api_calls}")
 
     # Upload to webdav
     if config['webdav_url']:
@@ -258,6 +391,20 @@ if __name__ == "__main__":
             tmp_fp = tmp.name
 
         webdav.upload(tmp_fp, "{}/{}".format(config['webdav_directory'], "todoist_full.txt"))
+
+
+        backups_dir = os.path.join(appdir, "backups")
+        if not os.path.exists(backups_dir):
+            os.makedirs(backups_dir)
+
+        index = datetime.now().strftime(r"%Y_%m_%d_%H_%M_%S")
+        backup_fp = os.path.join(backups_dir, f"backup_{index}.txt") 
+        shutil.copy(tmp_fp, backup_fp)
+        backups = os.listdir(backups_dir)
+        if len(backups) > config['max_backups']:
+            os.remove(os.path.join(backups_dir, sorted(backups)[0]))
+
         os.remove(tmp_fp)
 
 
+    
