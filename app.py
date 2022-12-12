@@ -272,15 +272,15 @@ Link: {asana_task['permalink_url']}
 
 ---
 {this_uid}"""
-
-                    todoist_api.add_item(
-                        {
-                            "content": content,
-                            "description": description,
-                            "date_string": start_date.strftime(r"%Y.%m.%d"),
-                            "priority": asana_profile['priority']
-                        }
-                    )
+                    if start_date >= datetime.now():
+                        todoist_api.add_item(
+                            {
+                                "content": content,
+                                "description": description,
+                                "date_string": start_date.strftime(r"%Y.%m.%d"),
+                                "priority": asana_profile['priority']
+                            }
+                        )
 
                 if due_date:
                     # CREATE "FINISH TASK:"
@@ -297,15 +297,15 @@ Link: {asana_task['permalink_url']}
 
 ---
 {this_uid}"""
-
-                    todoist_api.add_item(
-                        {
-                            "content": content,
-                            "description": description,
-                            "date_string": due_date.strftime(r"%Y.%m.%d"),
-                            "priority": asana_profile['priority']
-                        }
-                    )
+                    if due_date >= datetime.now():
+                        todoist_api.add_item(
+                            {
+                                "content": content,
+                                "description": description,
+                                "date_string": due_date.strftime(r"%Y.%m.%d"),
+                                "priority": asana_profile['priority']
+                            }
+                        )
 
                 if start_date and due_date:
                     # CREATE "WORK ON TASK:"
@@ -323,15 +323,15 @@ Link: {asana_task['permalink_url']}
 
     ---
     {this_uid}"""
-
-                        todoist_api.add_item(
-                            {
-                                "content": content,
-                                "description": description,
-                                "date_string": day.strftime(r"%Y.%m.%d"),
-                                "priority": asana_profile['priority']
-                            }
-                        )
+                        if day >= datetime.now():
+                            todoist_api.add_item(
+                                {
+                                    "content": content,
+                                    "description": description,
+                                    "date_string": day.strftime(r"%Y.%m.%d"),
+                                    "priority": asana_profile['priority']
+                                }
+                            )
             with open(asana_mem_path, "w+") as f:
                 f.write(datetime.now().strftime(asana_cache_time_format))
         else:
