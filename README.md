@@ -14,7 +14,8 @@
 - Archive all your Todoist tasks into a todo.txt spec file
 - Write specific project, today's tasks or inbox into a todo.txt spec file
 - Create new Todoist tasks from calendars using CalDAV
-- Create new Todoist tasks from Asana tasks (WIP)
+- Create new Todoist tasks from Asana tasks
+- Free reminder - script can send homeassistant notification for tasks marked with @notify tag (Limitations - if you change due date it wont notify you again on this same task, needs to be recreated)
 
 ## Requirements
 - git
