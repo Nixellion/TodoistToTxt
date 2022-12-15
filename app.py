@@ -302,7 +302,7 @@ if __name__ == "__main__":
                     if task_data and task_data['uid'] == new_task_data['uid']:
                         print(f"Removing task, part of Asana Sync: {asana_task['name']}")
                         remove_tasks.append(todoist_task)
-                # print(todoist_api.delete_items(remove_tasks))
+                print(todoist_api.delete_items(remove_tasks))
 
                 
 
