@@ -7,6 +7,8 @@ from todoist_api import TodoistAPI
 from asana_api import AsanaAPI
 import string
 import tempfile
+import requests
+import traceback
 import sys
 # easywebdav python3 hack
 import easywebdav.client
@@ -197,6 +199,7 @@ def get_archival_text(api: TodoistAPI):
 
     return archival_text
 
+
 def extract_data_from_description(description):
     print(f"Extracting data from: {description}")
     data = ""
@@ -215,6 +218,7 @@ def extract_data_from_description(description):
     print(f"Extracted data: {return_data}")
     return return_data
 
+
 def data_dumps(data):
     data_string = yaml.safe_dump(data)
     return f"""
@@ -225,7 +229,10 @@ def data_dumps(data):
 ```
 
 """
+
+
 from copy import copy
+
 
 def generate_description(asana_task, task_data, task_type="start"):
     task_data = copy(task_data)
@@ -237,6 +244,7 @@ Link: {asana_task['permalink_url']}
 
 {task_data_string}"""
     return description
+
 
 if __name__ == "__main__":
     # TODO Make 'type' selection work
@@ -304,8 +312,6 @@ if __name__ == "__main__":
                         remove_tasks.append(todoist_task)
                 print(todoist_api.delete_items(remove_tasks))
 
-                
-
                 if start_date and start_date >= datetime.now():
                     content = f"{asana_tag.upper()} - START TASK: {asana_task['name']} @{asana_tag} "
 
@@ -360,6 +366,55 @@ if __name__ == "__main__":
 
     # endregion
 
+    # region Notifier
+    if "homeassistant" in config:
+        notified_filepath = os.path.join(appdir, 'data', 'notified.dat')
+        if os.path.exists(notified_filepath):
+            with open(notified_filepath, "r") as f:
+                notified = f.read().split("\n")
+        else:
+            notified = []
+        for item in todoist_api.get_items():
+            print(item)
+            if str(item['id']) in notified:
+                continue
+            notify_delta = timedelta(minutes=5)
+            try:
+                if "notify" in item['labels'] and item['due']:
+                    if item['due'] != None:
+                        try:
+                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S")
+                        except:
+                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ")
+                            due_date += timedelta(hours=config['local_timezone_offset'])
+
+                        now = datetime.now()
+                        from_date = due_date - notify_delta
+                        if from_date < now < due_date:
+                            print("Trying to notify about due task.")
+                            try:
+                                url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
+                                headers = {
+                                    "Authorization": f"Bearer {config['homeassistant']['hass_token']}",
+                                    "content-type": "application/json",
+                                }
+                                response = requests.post(url, headers=headers, json={
+                                    "entity_id": config['homeassistant']['script_entity_id'],
+                                    "variables":
+                                    {"title": f"Todoist Item is Due!",
+                                        "message": item['content']}
+                                }
+                                )
+                                with open(notified_filepath, "a+") as f:
+                                    f.write(item['id'] + "\n")
+                            except Exception as e:
+                                print("ERROR!", e)
+
+            except Exception as e:
+                print(e)
+                traceback.print_exc()
+
+    # endregion
     local_filepath = os.path.join(appdir, config['filename_output'])
 
     output_text = generate_output_text()
@@ -413,19 +468,15 @@ if __name__ == "__main__":
 
         webdav.upload(tmp_fp, "{}/{}".format(config['webdav_directory'], "todoist_full.txt"))
 
-
         backups_dir = os.path.join(appdir, "backups")
         if not os.path.exists(backups_dir):
             os.makedirs(backups_dir)
 
         index = datetime.now().strftime(r"%Y_%m_%d_%H_%M_%S")
-        backup_fp = os.path.join(backups_dir, f"backup_{index}.txt") 
+        backup_fp = os.path.join(backups_dir, f"backup_{index}.txt")
         shutil.copy(tmp_fp, backup_fp)
         backups = os.listdir(backups_dir)
         if len(backups) > config['max_backups']:
             os.remove(os.path.join(backups_dir, sorted(backups)[0]))
 
         os.remove(tmp_fp)
-
-
-    
