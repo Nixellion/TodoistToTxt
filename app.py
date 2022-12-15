@@ -197,6 +197,46 @@ def get_archival_text(api: TodoistAPI):
 
     return archival_text
 
+def extract_data_from_description(description):
+    print(f"Extracting data from: {description}")
+    data = ""
+    extract = False
+    for line in description.split("\n"):
+        if line.strip() == "--- TodoistToTxt Data End ---":
+            extract = False
+        if extract:
+            data += line + "\n"
+        if line.strip() == "--- TodoistToTxt Data ---":
+            extract = True
+    if not data:
+        return_data = None
+    else:
+        return_data = yaml.safe_load(data)
+    print(f"Extracted data: {return_data}")
+    return return_data
+
+def data_dumps(data):
+    data_string = yaml.safe_dump(data)
+    return f"""
+```
+--- TodoistToTxt Data ---
+{data_string}
+--- TodoistToTxt Data End ---
+```
+
+"""
+from copy import copy
+
+def generate_description(asana_task, task_data, task_type="start"):
+    task_data = copy(task_data)
+    task_data['task_type'] = task_type
+    task_data_string = data_dumps(task_data)
+    description = f"""{asana_task['notes']}
+
+Link: {asana_task['permalink_url']}
+
+{task_data_string}"""
+    return description
 
 if __name__ == "__main__":
     # TODO Make 'type' selection work
@@ -250,80 +290,61 @@ if __name__ == "__main__":
                 if due_date and due_date < datetime.now():
                     continue
 
-                task_uid = f"[asana_{asana_task['gid']}]"
+                new_task_data = {
+                    "uid": f"asana_{asana_task['gid']}"
+                }
                 todoist_tasks = todoist_api.get_items()
 
+                # TODO: Remember completed tasks and ignore them later
                 remove_tasks = []
                 for todoist_task in todoist_tasks:
-                    if task_uid in todoist_task['description']:
+                    task_data = extract_data_from_description(todoist_task['description'])
+                    if task_data and task_data['uid'] == new_task_data['uid']:
                         print(f"Removing task, part of Asana Sync: {asana_task['name']}")
                         remove_tasks.append(todoist_task)
-                print(todoist_api.delete_items(remove_tasks))
+                # print(todoist_api.delete_items(remove_tasks))
 
-                if start_date:
-                    # Create "START TASK:"
-                    this_uid = task_uid + "-[start]"
+                
+
+                if start_date and start_date >= datetime.now():
                     content = f"{asana_tag.upper()} - START TASK: {asana_task['name']} @{asana_tag} "
 
                     # TODO: Use `html_notes` with html to markdown
-                    description = f"""{asana_task['notes']}
+                    description = generate_description(asana_task, new_task_data, "start")
+                    todoist_api.add_item(
+                        {
+                            "content": content,
+                            "description": description,
+                            "date_string": start_date.strftime(r"%Y.%m.%d"),
+                            "priority": asana_profile['priority']
+                        }
+                    )
 
-Link: {asana_task['permalink_url']}
-
----
-{this_uid}"""
-                    if start_date >= datetime.now():
-                        todoist_api.add_item(
-                            {
-                                "content": content,
-                                "description": description,
-                                "date_string": start_date.strftime(r"%Y.%m.%d"),
-                                "priority": asana_profile['priority']
-                            }
-                        )
-
-                if due_date:
-                    # CREATE "FINISH TASK:"
-                    # print("="*80)
-                    # print(pp.pprint(asana_task))
-                    # print("="*80)
-                    this_uid = task_uid + "-[finish]"
+                if due_date and due_date >= datetime.now():
                     content = f"{asana_tag.upper()} - FINISH TASK: {asana_task['name']} @{asana_tag}"
 
                     # TODO: Use `html_notes` with html to markdown
-                    description = f"""{asana_task['notes']}
-
-Link: {asana_task['permalink_url']}
-
----
-{this_uid}"""
-                    if due_date >= datetime.now():
-                        todoist_api.add_item(
-                            {
-                                "content": content,
-                                "description": description,
-                                "date_string": due_date.strftime(r"%Y.%m.%d"),
-                                "priority": asana_profile['priority']
-                            }
-                        )
+                    description = generate_description(asana_task, new_task_data, "finish")
+                    todoist_api.add_item(
+                        {
+                            "content": content,
+                            "description": description,
+                            "date_string": due_date.strftime(r"%Y.%m.%d"),
+                            "priority": asana_profile['priority']
+                        }
+                    )
 
                 if start_date and due_date:
                     # CREATE "WORK ON TASK:"
-                    this_uid = task_uid + "-[work]"
                     delta = due_date - start_date
                     for i in range(1, delta.days):
                         day = start_date + timedelta(days=i)
-
-                        content = f"{asana_tag.upper()} - WORK ON TASK: {asana_task['name']} @{asana_tag} "
-
-                        # TODO: Use `html_notes` with html to markdown
-                        description = f"""{asana_task['notes']}
-
-    Link: {asana_task['permalink_url']}
-
-    ---
-    {this_uid}"""
                         if day >= datetime.now():
+
+                            content = f"{asana_tag.upper()} - WORK ON TASK: {asana_task['name']} @{asana_tag} "
+
+                            # TODO: Use `html_notes` with html to markdown
+                            description = generate_description(asana_task, new_task_data, "work")
                             todoist_api.add_item(
                                 {
                                     "content": content,
