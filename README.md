@@ -142,3 +142,8 @@ InlinePattern6=(due:)(.*)
 InlineSetting7=Case | Upper
 InlinePattern7=(due:)(.*)
 ```
+
+
+# ToDo:
+
+- Make two versions of the script - one that will continue working as Cronjob and another that runs as a daemon with extra features and better responsiveness

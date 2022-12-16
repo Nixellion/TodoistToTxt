@@ -378,7 +378,7 @@ if __name__ == "__main__":
             print(item)
             if str(item['id']) in notified:
                 continue
-            notify_delta = timedelta(minutes=5)
+            notify_delta = timedelta(minutes=config['notifier_threshold_minutes'])
             try:
                 if "notify" in item['labels'] and item['due']:
                     if item['due'] != None:
