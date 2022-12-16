@@ -10,6 +10,8 @@ import tempfile
 import requests
 import traceback
 import sys
+import hashlib
+import json
 # easywebdav python3 hack
 import easywebdav.client
 from datetime import date, datetime, timedelta
@@ -367,6 +369,9 @@ if __name__ == "__main__":
     # endregion
 
     # region Notifier
+    def notifier_task_hash(task):
+        return hashlib.sha256(json.dumps(task).encode("utf-8")).hexdigest()
+
     if "homeassistant" in config:
         notified_filepath = os.path.join(appdir, 'data', 'notified.dat')
         if os.path.exists(notified_filepath):
@@ -375,40 +380,41 @@ if __name__ == "__main__":
         else:
             notified = []
         for item in todoist_api.get_items():
-            print(item)
-            if str(item['id']) in notified:
-                continue
+            
+            
             notify_delta = timedelta(minutes=config['notifier_threshold_minutes'])
             try:
-                if "notify" in item['labels'] and item['due']:
-                    if item['due'] != None:
-                        try:
-                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S")
-                        except:
-                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ")
-                            due_date += timedelta(hours=config['local_timezone_offset'])
+                if "notify" in item['labels'] and item['due'] and item['due'] != None:
+                    item_hash = notifier_task_hash(item)
+                    if item_hash in notified:
+                        continue
+                    try:
+                        due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S")
+                    except:
+                        due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ")
+                        due_date += timedelta(hours=config['local_timezone_offset'])
 
-                        now = datetime.now()
-                        from_date = due_date - notify_delta
-                        if from_date < now < due_date:
-                            print("Trying to notify about due task.")
-                            try:
-                                url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
-                                headers = {
-                                    "Authorization": f"Bearer {config['homeassistant']['hass_token']}",
-                                    "content-type": "application/json",
-                                }
-                                response = requests.post(url, headers=headers, json={
-                                    "entity_id": config['homeassistant']['script_entity_id'],
-                                    "variables":
-                                    {"title": f"Todoist Item is Due!",
-                                        "message": item['content']}
-                                }
-                                )
-                                with open(notified_filepath, "a+") as f:
-                                    f.write(item['id'] + "\n")
-                            except Exception as e:
-                                print("ERROR!", e)
+                    now = datetime.now()
+                    from_date = due_date - notify_delta
+                    if from_date < now < due_date:
+                        print("Trying to notify about due task.")
+                        try:
+                            url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
+                            headers = {
+                                "Authorization": f"Bearer {config['homeassistant']['hass_token']}",
+                                "content-type": "application/json",
+                            }
+                            response = requests.post(url, headers=headers, json={
+                                "entity_id": config['homeassistant']['script_entity_id'],
+                                "variables":
+                                {"title": f"Todoist Item is Due!",
+                                    "message": item['content']}
+                            }
+                            )
+                            with open(notified_filepath, "a+") as f:
+                                f.write(item_hash + "\n")
+                        except Exception as e:
+                            print("ERROR!", e)
 
             except Exception as e:
                 print(e)
