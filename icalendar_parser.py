@@ -26,8 +26,8 @@ todoist_headers = {
 }
 
 
-def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
-    print(f"sync_calendar: {calendar_url}; {tag}; {priority}")
+def sync_calendar(calendar_url, tag="todoisttotxt", tags=[], priority=3):
+    print(f"sync_calendar: {calendar_url}; {tag}; {tags}; {priority}")
     response = requests.get(calendar_url)
     ical_data = BytesIO(response.content)
 
@@ -66,6 +66,8 @@ def sync_calendar(calendar_url, tag="todoisttotxt", priority=3):
 
             first_line = ical_description.split("\n")[0]
             content = f"{tag.upper()}: {ical_summary}: {first_line} @{tag} "
+            for _tag in tags:
+                content += f"@{_tag} "
             description = f"""{ical_description}
 
 Link: {ical_url}
