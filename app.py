@@ -392,7 +392,9 @@ if __name__ == "__main__":
                 for label in item['labels']:
                     match = re.match(notify_regex, label)
                     if match and item['due'] and item['due'] != None:
-                        threshold = match.groupdict().get("threshold", config['notifier_threshold_minutes'])
+                        threshold = match.groupdict().get("threshold", None)
+                        if threshold is None:
+                            threshold = config['notifier_threshold_minutes']
                         notify_delta = timedelta(minutes=threshold)
                         item_hash = notifier_task_hash(item, label)
                         if item_hash in notified:
