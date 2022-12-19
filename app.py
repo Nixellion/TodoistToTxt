@@ -395,7 +395,7 @@ if __name__ == "__main__":
                         threshold = match.groupdict().get("threshold", None)
                         if threshold is None:
                             threshold = config['notifier_threshold_minutes']
-                        notify_delta = timedelta(minutes=threshold)
+                        notify_delta = timedelta(minutes=int(threshold))
                         item_hash = notifier_task_hash(item, label)
                         if item_hash in notified:
                             continue
