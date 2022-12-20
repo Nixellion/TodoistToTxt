@@ -317,7 +317,7 @@ if __name__ == "__main__":
                         remove_tasks.append(todoist_task)
                 print(todoist_api.delete_items(remove_tasks))
 
-                if start_date and start_date >= datetime.now():
+                if start_date and start_date.date() >= datetime.now().date():
                     content = f"{asana_tag.upper()} - START TASK: {asana_task['name']} @{asana_tag} "
                     for _tag in asana_tags:
                         content += f"@{_tag} "
@@ -333,7 +333,7 @@ if __name__ == "__main__":
                         }
                     )
 
-                if due_date and due_date >= datetime.now():
+                if due_date and due_date.date() >= datetime.now().date():
                     content = f"{asana_tag.upper()} - FINISH TASK: {asana_task['name']} @{asana_tag}"
 
                     # TODO: Use `html_notes` with html to markdown
@@ -352,7 +352,7 @@ if __name__ == "__main__":
                     delta = due_date - start_date
                     for i in range(1, delta.days):
                         day = start_date + timedelta(days=i)
-                        if day >= datetime.now():
+                        if day.date() >= datetime.now().date():
 
                             content = f"{asana_tag.upper()} - WORK ON TASK: {asana_task['name']} @{asana_tag} "
 
