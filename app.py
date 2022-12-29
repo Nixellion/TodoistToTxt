@@ -1,4 +1,5 @@
-# TODO: https://developers.asana.com/docs/get-multiple-tasks
+# TODO: Make Asana task tracking smarter, dont just batch delete everything, edit instead or smth, and remember if a task was compelted in todoist.
+# IDEA: Store hashes of all tasks that were marked as compelted to file
 
 import os
 import shutil
@@ -398,6 +399,7 @@ if __name__ == "__main__":
                         notify_delta = timedelta(minutes=int(threshold))
                         item_hash = notifier_task_hash(item, label)
                         if item_hash in notified:
+                            print(f"Already notified task: {item['content']}")
                             continue
                         try:
                             due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S")
@@ -408,7 +410,7 @@ if __name__ == "__main__":
                         now = datetime.now()
                         from_date = due_date - notify_delta
                         if from_date < now < due_date:
-                            print("Trying to notify about due task.")
+                            print(f"Trying to notify about due task: {item['content']}")
                             try:
                                 url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
                                 headers = {
