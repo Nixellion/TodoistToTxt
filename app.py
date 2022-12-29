@@ -389,6 +389,7 @@ if __name__ == "__main__":
         else:
             notified = []
         for item in todoist_api.get_items():
+            print(f"Notify? ({item['content']})")
             try:
                 notify_regex = r"notify(?P<threshold>.+)?"
                 for label in item['labels']:
