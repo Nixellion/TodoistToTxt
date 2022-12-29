@@ -429,6 +429,8 @@ if __name__ == "__main__":
                                     f.write(item_hash + "\n")
                             except Exception as e:
                                 print("ERROR!", e)
+                    else:
+                        print(f"Label did not match notify label pattern: {label} ({notify_regex})")
 
             except Exception as e:
                 print(e)
