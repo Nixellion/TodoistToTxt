@@ -381,6 +381,7 @@ if __name__ == "__main__":
         return hashlib.sha256(string.encode("utf-8")).hexdigest()
 
     if "homeassistant" in config:
+        print("Running HomeAssistant notifier...")
         notified_filepath = os.path.join(appdir, 'data', 'notified.dat')
         if os.path.exists(notified_filepath):
             with open(notified_filepath, "r") as f:
