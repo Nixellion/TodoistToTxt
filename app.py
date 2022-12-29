@@ -392,6 +392,8 @@ if __name__ == "__main__":
             print(f"Notify? ({item['content']})")
             try:
                 notify_regex = r"notify(?P<threshold>.+)?"
+                if len(item['labels']) == 0:
+                    print("No labels in this task.")
                 for label in item['labels']:
                     match = re.match(notify_regex, label)
                     if match and item['due'] and item['due'] != None:
