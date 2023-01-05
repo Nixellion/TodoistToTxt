@@ -424,8 +424,11 @@ if __name__ == "__main__":
                                 response = requests.post(url, headers=headers, json={
                                     "entity_id": config['homeassistant']['script_entity_id'],
                                     "variables":
-                                    {"title": f"Todoist Item is Due!",
-                                        "message": item['content']}
+                                    {
+                                        "title": f"Todoist Item is Due!",
+                                        "message": item['content'],
+                                        "clickAction": f"https://todoist.com/showTask?id={item['id']}" # Set url to open todoist item
+                                    }
                                 }
                                 )
                                 with open(notified_filepath, "a+") as f:
