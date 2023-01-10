@@ -295,6 +295,7 @@ if __name__ == "__main__":
             asana_api = AsanaAPI(asana_profile['personal_access_token'])
             asana_tag = asana_profile['tag']
             asana_tags = asana_profile.get('tags', [])
+            asana_tags.append(asana_tag)
             asana_tasks = asana_api.get_tasks(asana_profile['task_params'])
             for asana_task in asana_tasks:
                 start_date = datetime.strptime(
@@ -319,9 +320,9 @@ if __name__ == "__main__":
                 print(todoist_api.delete_items(remove_tasks))
 
                 if start_date and start_date.date() >= datetime.now().date():
-                    content = f"{asana_tag.upper()} - START TASK: {asana_task['name']} @{asana_tag} "
-                    for _tag in asana_tags:
-                        content += f"@{_tag} "
+                    content = f"{asana_tag.upper()} - START TASK: {asana_task['name']}" # @{asana_tag} "
+                    # for _tag in asana_tags:
+                    #     content += f"@{_tag} "
 
                     # TODO: Use `html_notes` with html to markdown
                     description = generate_description(asana_task, new_task_data, "start")
@@ -330,7 +331,8 @@ if __name__ == "__main__":
                             "content": content,
                             "description": description,
                             "date_string": start_date.strftime(r"%Y.%m.%d"),
-                            "priority": asana_profile['priority']
+                            "priority": asana_profile['priority'],
+                            "labels": asana_tags
                         }
                     )
 
@@ -344,7 +346,8 @@ if __name__ == "__main__":
                             "content": content,
                             "description": description,
                             "date_string": due_date.strftime(r"%Y.%m.%d"),
-                            "priority": asana_profile['priority']
+                            "priority": asana_profile['priority'],
+                            "labels": asana_tags
                         }
                     )
 
@@ -364,7 +367,8 @@ if __name__ == "__main__":
                                     "content": content,
                                     "description": description,
                                     "date_string": day.strftime(r"%Y.%m.%d"),
-                                    "priority": asana_profile['priority']
+                                    "priority": asana_profile['priority'],
+                                    "labels": asana_tags
                                 }
                             )
             with open(asana_mem_path, "w+") as f:
@@ -427,7 +431,7 @@ if __name__ == "__main__":
                                     {
                                         "title": f"Todoist Item is Due!",
                                         "message": item['content'],
-                                        "clickAction": f"https://todoist.com/showTask?id={item['id']}" # Set url to open todoist item
+                                        "clickAction": f"https://todoist.com/showTask?id={item['id']}" # Set url to open todoist item,
                                     }
                                 }
                                 )
