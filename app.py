@@ -409,11 +409,16 @@ if __name__ == "__main__":
                         if item_hash in notified:
                             print(f"Already notified task: {item['content']}")
                             continue
+
+                        # TODO This is used twice might need to turn into function
                         try:
-                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S")
+                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d").date()
                         except:
-                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ")
-                            due_date += timedelta(hours=config['local_timezone_offset'])
+                            try:
+                                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S").date()
+                            except:
+                                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ").date()
+                                due_date += timedelta(hours=config['local_timezone_offset'])
 
                         now = datetime.now()
                         from_date = due_date - notify_delta
