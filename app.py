@@ -410,14 +410,14 @@ if __name__ == "__main__":
                             print(f"Already notified task: {item['content']}")
                             continue
 
-                        # TODO This is used twice might need to turn into function
+                        # TODO This is used twice might need to turn into function, the only difference is .date() in the end
                         try:
-                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d").date()
+                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d")
                         except:
                             try:
-                                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S").date()
+                                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S")
                             except:
-                                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ").date()
+                                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ")
                                 due_date += timedelta(hours=config['local_timezone_offset'])
 
                         now = datetime.now()
