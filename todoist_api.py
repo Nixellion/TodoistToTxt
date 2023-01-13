@@ -6,11 +6,11 @@ from uuid import uuid4
 appdir = os.path.dirname(os.path.realpath(__file__))  # rp, realpath
 
 
-
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
     for i in range(0, len(lst), n):
         yield lst[i:i + n]
+
 
 class TodoistAPI():
     def __init__(self, token) -> None:
@@ -90,10 +90,30 @@ class TodoistAPI():
             responses.append(response.text)
         return responses
 
-    def add_item(self, item_data):
+    def add_item(self, item_data, quick=False):
         print(f"TODOIST add_item: {item_data}")
-        task = self.post("https://api.todoist.com/sync/v9/items/add", headers=self.headers, json=item_data
+        if quick:
+            task = self.post("https://api.todoist.com/sync/v9/items/add", headers=self.headers, json=item_data
                              ).text
+        else:
+
+            # Adjust format of date string from quick_add format to sync format
+            if 'date_string' in item_data:
+                date_string = item_data.pop('date_string')
+                item_data['due'] = {
+                    'string': date_string
+                }
+            task = requests.post("https://api.todoist.com/sync/v9/sync", headers=self.headers, json={
+                "commands": [
+                    {
+                        "type": "item_add",
+                                "temp_id": str(uuid4()),
+                                "uuid": str(uuid4()),
+                                "args": item_data
+                    }
+                ]
+            }
+            ).text
         return task
 
     # def add_task(self,)

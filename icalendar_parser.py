@@ -113,11 +113,11 @@ Link: {ical_url}
                         "commands": [
                             {
                                 "type": "item_update",
-                                "uuid": str(uuid4),
+                                "uuid": str(uuid4()),
                                 "args": {"id": item['id'],
                                         "content": content,
                                         "description": description,
-                                        "date_string": date_string
+                                        "due": {"string":  date_string},
                                         }
                             }
                         ]
@@ -145,14 +145,31 @@ Link: {ical_url}
                     except Exception as e:
                         print("ERROR!", e)
 
-                task = requests.post("https://api.todoist.com/sync/v9/items/add", headers=todoist_headers, json={
-                    "content": content,
-                    "description": description,
-                    "date_string": date_string,
-                    "priority": priority
-                    # "labels": combined_tags
-                }
-                )
+                # task = requests.post("https://api.todoist.com/sync/v9/items/add", headers=todoist_headers, json={
+                #     "content": content,
+                #     "description": description,
+                #     "date_string": date_string,
+                #     "priority": priority
+                #     # "labels": combined_tags
+                # }
+                # )
+                task = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
+                        "commands": [
+                            {
+                                "type": "item_add",
+                                "temp_id": str(uuid4()),
+                                "uuid": str(uuid4()),
+                                "args": {
+                                        "content": content,
+                                        "description": description,
+                                        "due": {"string":  date_string},
+                                        "priority": priority,
+                                        "labels": combined_tags
+                                        }
+                            }
+                        ]
+                    }
+                    )
                 print(f"Task added: {task.text}")
 
             # api.items.add(content=content, description=description, due={'date': start.dt.strftime(r'%Y-%m-%dT%H:%M:%S'),
@@ -181,16 +198,35 @@ if __name__ == "__main__":
         return label_id
 
     
-    task = requests.post("https://api.todoist.com/sync/v9/items/add", headers=todoist_headers, json={
-                    "content": "content",
-                    "description": "description",
-                    "date_string": "2023-01-13 at 13:00",
-                    "priority": 1,
-                    "labels": str(["pzd"])
-                }
-                )
-    print(task.text)
+    # task = requests.post("https://api.todoist.com/sync/v9/items/add", headers=todoist_headers, json={
+    #                 "content": "content",
+    #                 "description": "description",
+    #                 "date_string": "2023-01-13 at 13:00",
+    #                 "priority": 1,
+    #                 "labels": str(["pzd"])
+    #             }
+    #             )
+    # print(task.text)
 
+    # TODO Try to add lilke this
+
+    task = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
+                        "commands": [
+                            {
+                                "type": "item_add",
+                                "temp_id": str(uuid4()),
+                                "uuid": str(uuid4()),
+                                "args": {
+                                        "content": "TEST TASK",
+                                        "description": "description",
+                                        "due": {"string":  "2023-01-13 at 13:00"},
+                                        "labels": ["pzd"]
+                                        }
+                            }
+                        ]
+                    }
+                    ).text
+    print(task)
 # sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
 
 # api = todoist.TodoistAPI(config['todoist_token'])

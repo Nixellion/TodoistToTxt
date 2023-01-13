@@ -332,7 +332,7 @@ if __name__ == "__main__":
                             "description": description,
                             "date_string": start_date.strftime(r"%Y.%m.%d"),
                             "priority": asana_profile['priority'],
-                            # "labels": asana_tags
+                            "labels": asana_tags
                         }
                     )
 
@@ -347,7 +347,7 @@ if __name__ == "__main__":
                             "description": description,
                             "date_string": due_date.strftime(r"%Y.%m.%d"),
                             "priority": asana_profile['priority'],
-                            # "labels": asana_tags
+                            "labels": asana_tags
                         }
                     )
 
@@ -368,7 +368,7 @@ if __name__ == "__main__":
                                     "description": description,
                                     "date_string": day.strftime(r"%Y.%m.%d"),
                                     "priority": asana_profile['priority'],
-                                    # "labels": asana_tags
+                                    "labels": asana_tags
                                 }
                             )
             with open(asana_mem_path, "w+") as f:
