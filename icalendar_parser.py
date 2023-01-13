@@ -129,7 +129,7 @@ Link: {ical_url}
                 else:
                     print(f"No changes in task: {content}; {description}; {date_string}")
             else:
-                print(f"Adding task: {content}; {description}; {date_string}")
+                print(f"Adding task: {content}; {description}; {date_string}; {combined_tags}")
                 if "homeassistant" in config:
                     try:
                         url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
@@ -149,8 +149,8 @@ Link: {ical_url}
                     "content": content,
                     "description": description,
                     "date_string": date_string,
-                    "priority": priority,
-                    "labels": combined_tags
+                    "priority": priority
+                    # "labels": combined_tags
                 }
                 )
                 print(f"Task added: {task.text}")
@@ -166,6 +166,30 @@ Link: {ical_url}
             # task = api.items.add(content, project_id=None, date_string=date_string, description=description, priority=priority)
             # task = api.add_item(content, project_id=None, date_string=date_string, description=description, priority=priority)
 
+if __name__ == "__main__":
+    import json
+    from todoist_api import TodoistAPI
+    todoist_api = TodoistAPI(config['todoist_token'])
+
+    def get_label_id(name):
+        label_id = None
+        # Find required label
+        for label in todoist_api.get_items("labels"):
+            if label['name'] == name:
+                label_id = label['id']
+                break
+        return label_id
+
+    
+    task = requests.post("https://api.todoist.com/sync/v9/items/add", headers=todoist_headers, json={
+                    "content": "content",
+                    "description": "description",
+                    "date_string": "2023-01-13 at 13:00",
+                    "priority": 1,
+                    "labels": str(["pzd"])
+                }
+                )
+    print(task.text)
 
 # sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
 

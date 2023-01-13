@@ -205,7 +205,7 @@ def get_archival_text(api: TodoistAPI):
 
 
 def extract_data_from_description(description):
-    print(f"Extracting data from: {description}")
+    # print(f"Extracting data from: {description}")
     data = ""
     extract = False
     for line in description.split("\n"):
@@ -219,7 +219,7 @@ def extract_data_from_description(description):
         return_data = None
     else:
         return_data = yaml.safe_load(data)
-    print(f"Extracted data: {return_data}")
+    # print(f"Extracted data: {return_data}")
     return return_data
 
 
@@ -332,7 +332,7 @@ if __name__ == "__main__":
                             "description": description,
                             "date_string": start_date.strftime(r"%Y.%m.%d"),
                             "priority": asana_profile['priority'],
-                            "labels": asana_tags
+                            # "labels": asana_tags
                         }
                     )
 
@@ -347,7 +347,7 @@ if __name__ == "__main__":
                             "description": description,
                             "date_string": due_date.strftime(r"%Y.%m.%d"),
                             "priority": asana_profile['priority'],
-                            "labels": asana_tags
+                            # "labels": asana_tags
                         }
                     )
 
@@ -368,7 +368,7 @@ if __name__ == "__main__":
                                     "description": description,
                                     "date_string": day.strftime(r"%Y.%m.%d"),
                                     "priority": asana_profile['priority'],
-                                    "labels": asana_tags
+                                    # "labels": asana_tags
                                 }
                             )
             with open(asana_mem_path, "w+") as f:
