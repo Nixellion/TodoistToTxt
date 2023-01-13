@@ -78,7 +78,7 @@ class AsanaAPI():
 if __name__ == "__main__":
     # Testing
     with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
-        config = yaml.load(f.read())
+        config = yaml.safe_load(f.read())
     print(AsanaAPI(config['asana'][0]['personal_access_token']).get_workspaces())
 
     # for task in AsanaAPI(config['asana'][0]['personal_access_token']).get_tasks(config['asana'][0]['task_params']):

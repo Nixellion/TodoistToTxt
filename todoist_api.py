@@ -100,5 +100,5 @@ class TodoistAPI():
 if __name__ == "__main__":
     # Testing
     with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
-        config = yaml.load(f.read())
+        config = yaml.safe_load(f.read())
     print(TodoistAPI(config['todoist_token']).get_items("projects"))

@@ -12,7 +12,7 @@ from uuid import uuid4
 appdir = os.path.dirname(os.path.realpath(__file__))  # rp, realpath
 
 with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
-    config = yaml.load(f.read())
+    config = yaml.safe_load(f.read())
 
 
 local = pytz.timezone(config['local_timezone'])

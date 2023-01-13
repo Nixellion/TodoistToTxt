@@ -13,7 +13,7 @@ import time
 appdir = os.path.dirname(os.path.realpath(__file__))
 
 with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
-    config = yaml.load(f.read())
+    config = yaml.safe_load(f.read())
 api = TodoistAPI(config['todoist_token'])
 
 
