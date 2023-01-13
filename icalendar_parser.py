@@ -152,7 +152,8 @@ Link: {ical_url}
                     "priority": priority,
                     "labels": combined_tags
                 }
-                ).text
+                )
+                print(f"Task added: {task.text}")
 
             # api.items.add(content=content, description=description, due={'date': start.dt.strftime(r'%Y-%m-%dT%H:%M:%S'),
             #                                                             'is_recurring': False,
