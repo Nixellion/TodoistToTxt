@@ -93,7 +93,7 @@ class TodoistAPI():
         return responses
 
     def get_completed_tasks(self):
-        return self.post("https://api.todoist.com/sync/v9/completed/get_all", headers=api.headers).json()
+        return self.post("https://api.todoist.com/sync/v9/completed/get_all", headers=self.headers).json()
     
     def add_item(self, item_data, quick=False):
         print(f"TODOIST add_item: {item_data}")
@@ -122,9 +122,9 @@ class TodoistAPI():
         return task
 
     # def add_task(self,)
-if __name__ == "__main__":
-    # Testing
-    with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
-        config = yaml.safe_load(f.read())
-    api = TodoistAPI(config['todoist_token'])
-    print(api.get_completed_tasks()['items'])
+# if __name__ == "__main__":
+#     # Testing
+#     with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
+#         config = yaml.safe_load(f.read())
+#     api = TodoistAPI(config['todoist_token'])
+#     print(api.get_completed_tasks()['items'])
