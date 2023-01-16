@@ -169,7 +169,7 @@ def get_project_items(project_name):
                 todoist_api.delete_item(item)
             else:
                 print(f"Config tells me to skip clean_up_completed_tasks: {item['content']}")
-        else:
+        elif not config['remove_completed_tasks']:
             print(f"Config tells me to skip remove_completed_tasks: {item['content']}")
     return items
 
