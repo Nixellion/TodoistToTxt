@@ -14,6 +14,7 @@ import sys
 import hashlib
 import json
 import re
+import timeago
 # easywebdav python3 hack
 import easywebdav.client
 from datetime import date, datetime, timedelta
@@ -434,7 +435,7 @@ if __name__ == "__main__":
                                     "entity_id": config['homeassistant']['script_entity_id'],
                                     "variables":
                                     {
-                                        "title": f"Todoist Item is Due!",
+                                        "title": f"Todoist Item Due {timeago.format(due_date, datetime.now())}!",
                                         "message": item['content'],
                                         "clickAction": f"https://todoist.com/showTask?id={item['id']}" # Set url to open todoist item,
                                     }
