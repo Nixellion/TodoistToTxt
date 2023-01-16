@@ -41,6 +41,8 @@ class TodoistAPI():
                 }
                 ).json()
                 items = response[items_type]
+                if items_type == "items":
+                    items.extend(self.get_completed_tasks()['items'])
                 self._state_cache[items_type] = items
             else:
                 items = self._state_cache[items_type]
@@ -90,6 +92,9 @@ class TodoistAPI():
             responses.append(response.text)
         return responses
 
+    def get_completed_tasks(self):
+        return self.post("https://api.todoist.com/sync/v9/completed/get_all", headers=api.headers).json()
+    
     def add_item(self, item_data, quick=False):
         print(f"TODOIST add_item: {item_data}")
         if quick:
@@ -121,4 +126,5 @@ if __name__ == "__main__":
     # Testing
     with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
         config = yaml.safe_load(f.read())
-    print(TodoistAPI(config['todoist_token']).get_items("projects"))
+    api = TodoistAPI(config['todoist_token'])
+    print(api.get_completed_tasks()['items'])

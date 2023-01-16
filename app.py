@@ -161,16 +161,18 @@ def get_project_items(project_name):
             if item['checked'] is False or config['show_completed_tasks']:
                 items.append(item_text)
 
-        # Cleanup completed tasks
-        if config['remove_completed_tasks'] and item['checked'] is True:
-            remember_task(item['content'])
-            if config['clean_up_completed_tasks']:
-                print(f"Deleting task '{item['content']}'")
-                todoist_api.delete_item(item)
-            else:
-                print(f"Config tells me to skip clean_up_completed_tasks: {item['content']}")
-        elif not config['remove_completed_tasks']:
-            print(f"Config tells me to skip remove_completed_tasks: {item['content']}")
+            # Cleanup completed tasks
+            if item['content'] == "TEST":
+                print
+            if config['remove_completed_tasks'] and item['checked'] is True:
+                remember_task(item['content'])
+                if config['clean_up_completed_tasks']:
+                    print(f"Deleting task '{item['content']}'")
+                    todoist_api.delete_item(item)
+                else:
+                    print(f"Config tells me to skip clean_up_completed_tasks: {item['content']}")
+            elif not config['remove_completed_tasks']:
+                print(f"Config tells me to skip remove_completed_tasks: {item['content']}")
     return items
 
 
