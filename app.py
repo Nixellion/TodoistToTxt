@@ -161,14 +161,14 @@ def get_project_items(project_name):
             if item['checked'] == 0 or config['show_completed_tasks']:
                 items.append(item_text)
 
-            # Cleanup completed tasks
-            if config['remove_completed_tasks'] and item['checked'] == 1:
-                remember_task(item['content'])
-                if config['clean_up_completed_tasks']:
-                    print(f"Deleting task '{item['content']}'")
-                    todoist_api.delete_item(item)
-            elif item['checked'] != 1 and item['checked'] != 0:
-                print("Something's not right, did Todoist change API? item['checked'] is not 0 or 1:")
+        # Cleanup completed tasks
+        if config['remove_completed_tasks'] and item['checked'] == 1:
+            remember_task(item['content'])
+            if config['clean_up_completed_tasks']:
+                print(f"Deleting task '{item['content']}'")
+                todoist_api.delete_item(item)
+        elif item['checked'] != 1 and item['checked'] != 0:
+            print("Something's not right, did Todoist change API? item['checked'] is not 0 or 1:")
     return items
 
 
