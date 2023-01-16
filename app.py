@@ -81,7 +81,7 @@ def remember_task(task):
 
 
 def todoist_item_to_txt(item):
-    if item['checked'] == 0:
+    if item['checked'] is False:
         text = ""
     else:
         text = "x "
@@ -158,11 +158,11 @@ def get_project_items(project_name):
                 break
             item_text = todoist_item_to_txt(item)
 
-            if item['checked'] == 0 or config['show_completed_tasks']:
+            if item['checked'] is False or config['show_completed_tasks']:
                 items.append(item_text)
 
         # Cleanup completed tasks
-        if config['remove_completed_tasks'] and item['checked'] == 1:
+        if config['remove_completed_tasks'] and item['checked'] is True:
             remember_task(item['content'])
             if config['clean_up_completed_tasks']:
                 print(f"Deleting task '{item['content']}'")
