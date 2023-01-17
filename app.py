@@ -75,7 +75,7 @@ def remember_task(task):
     if task not in lines:
         with open(today_path, "a+", encoding="utf-8") as f:
             f.write(task + "\n")
-        print(f"Task '{task}' added to memory for today. ({lines})")
+        print(f"Task '{task}' added to memory for today.")
     else:
         print(f"Task '{task}' already remembered as completed for today.")
 
@@ -462,7 +462,7 @@ if __name__ == "__main__":
                 delete_ids.append(item['id'])
             else:
                 print(f"Config tells me to skip clean_up_completed_tasks: {item['content']}")
-                
+
     if len(delete_ids) > 0:
         todoist_api.delete_items(delete_ids)
 
