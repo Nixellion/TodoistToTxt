@@ -127,4 +127,4 @@ if __name__ == "__main__":
     with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
         config = yaml.safe_load(f.read())
     api = TodoistAPI(config['todoist_token'])
-    print(api.get_completed_tasks())
+    print(api.get_items())
