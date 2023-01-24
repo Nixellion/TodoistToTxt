@@ -128,7 +128,9 @@ class TodoistAPI():
         return responses
 
     def get_completed_tasks(self):
-        return self.post("https://api.todoist.com/sync/v9/completed/get_all", headers=self.headers).json()['items']
+        return self.post("https://api.todoist.com/sync/v9/completed/get_all", headers=self.headers, json={
+            "limit": 200
+        }).json()['items']
     
     def add_item(self, item_data, quick=False):
         print(f"TODOIST add_item: {item_data}")
