@@ -14,6 +14,7 @@ import sys
 import hashlib
 import json
 import re
+import time
 import timeago
 # easywebdav python3 hack
 import easywebdav.client
@@ -452,8 +453,8 @@ if __name__ == "__main__":
 
     debug(output_text)
 
-    # Cleanup completed tasks
-    print("# Cleanup completed tasks")
+
+
     delete_ids = []
     for item in todoist_api.get_completed_tasks():
         if config['remove_completed_tasks']:

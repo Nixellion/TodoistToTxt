@@ -2,6 +2,7 @@ import os
 import yaml
 import requests
 from uuid import uuid4
+import time
 
 appdir = os.path.dirname(os.path.realpath(__file__))  # rp, realpath
 
@@ -25,6 +26,14 @@ class TodoistAPI():
     def post(self, *args, **kwargs):
         self.api_calls += 1
         return requests.post(*args, **kwargs)
+
+    def put(self, *args, **kwargs):
+        self.api_calls += 1
+        return requests.put(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        self.api_calls += 1
+        return requests.delete(*args, **kwargs)
 
     def get(self, *args, **kwargs):
         self.api_calls += 1
@@ -51,7 +60,33 @@ class TodoistAPI():
             raise Exception(f"API ERROR ({e}): {response}")
 
     def delete_item(self, item):
-        print(f"TODOIST delete_item: {item}")
+        print(f"- TODOIST delete_item: {item} - ", end="")
+        item_id = item['id'] if isinstance(item, dict) else item
+        response = self.delete("https://api.todoist.com/rest/v2/tasks/{}".format(item_id), headers=self.headers)
+        if not response.status_code == 204:
+            print(f"Failed removing item {item_id}, API error: {response.text}")
+        else:
+            print("Success.")
+        return response
+
+    def delete_items(self, items):
+        print(f"-- TODOIST delete_items:")
+        item_ids = []
+
+        for item in items:
+            item_ids.append(item['id'] if isinstance(item, dict) else item)
+
+        print(item_ids)
+        print()
+        responses = []
+        for item_id in item_ids:
+            response = self.delete_item(item_id)
+            responses.append(response)
+            time.sleep(0.5)
+        return responses
+
+    def delete_item_sync(self, item):
+        print(f"TODOIST delete_item_sync: {item}")
         response = self.post("https://api.todoist.com/sync/v9/sync", headers=self.headers, json={
             "commands": [
                 {
@@ -65,8 +100,8 @@ class TodoistAPI():
 
         return response
 
-    def delete_items(self, items):
-        print(f"TODOIST delete_items...")
+    def delete_items_sync(self, items):
+        print(f"TODOIST delete_items_sync...")
         item_ids = []
 
         for item in items:
@@ -124,7 +159,17 @@ class TodoistAPI():
     # def add_task(self,)
 if __name__ == "__main__":
     # Testing
+    import time
     with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
         config = yaml.safe_load(f.read())
     api = TodoistAPI(config['todoist_token'])
-    print(api.get_items())
+    print (api.delete_item("6522602728"))
+    # items = api.get_completed_tasks()
+    # for item in items:
+    #     print(item['content'])
+    #     print(api.delete_completed_item(item).text)
+    #     time.sleep(10)
+
+    # items = api.get_items()
+    # for item in items:
+    #     print(item['id'])
