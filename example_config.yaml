@@ -35,7 +35,7 @@ icalendar:
     interval: 30
 local_timezone: Europe/London 
 local_timezone_offset: 0 # Because I'm lazy, please enter your time offset in hours for your timezone above, negative or positive number
-notifier_threshold_minutes: 15 # Since the script is running as a cronjob you should set this value to something greater than your cron interval. For example if it runs every minute - 5 minutes is a good option. If you run it every 5 minutes, then 10-15 minutes for this should be good.
+notifier_threshold_minutes: 15 # Since the script is running as a cronjob you should set this value to something greater than your cron interval. For example if it runs every minute - 5 minutes is a good option. If you run it every 5 minutes, then 10-15 minutes for this should be good. This is the default value. You can change it per task by using @notify30 @notify90 etc where numbers are the threshold override. You can have multiple different threshold labels per task to notify multiple times
 homeassistant:
   hass_token: xxxxxxxxx # Home asssitant token which you can get from the UI under your user profile page (at least at the time of writing this)
   hass_url: http://192.168.1.2:8123 # Replace with your local or external home assistant url, *without* the trailing slash

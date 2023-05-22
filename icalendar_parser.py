@@ -26,7 +26,7 @@ todoist_headers = {
 }
 
 
-def sync_calendar(calendar_url, tag="todoisttotxt", tags=[], priority=3):
+def sync_calendar(calendar_url, tag="todoisttotxt", tags=[], priority=3, dry_run=False):
     print(f"sync_calendar: {calendar_url}; {tag}; {tags}; {priority}")
     combined_tags = tags
     combined_tags.append(tag)
@@ -77,6 +77,10 @@ Link: {ical_url}
 ---
 {ical_uid_stamp}"""
             existed = False
+
+            # If we're only performign a dry run, the rest is not needed. 
+            if dry_run:
+                continue
 
             items = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
                 "sync_token": "*",
@@ -184,18 +188,18 @@ Link: {ical_url}
             # task = api.add_item(content, project_id=None, date_string=date_string, description=description, priority=priority)
 
 if __name__ == "__main__":
-    import json
-    from todoist_api import TodoistAPI
-    todoist_api = TodoistAPI(config['todoist_token'])
+    # import json
+    # from todoist_api import TodoistAPI
+    # todoist_api = TodoistAPI(config['todoist_token'])
 
-    def get_label_id(name):
-        label_id = None
-        # Find required label
-        for label in todoist_api.get_items("labels"):
-            if label['name'] == name:
-                label_id = label['id']
-                break
-        return label_id
+    # def get_label_id(name):
+    #     label_id = None
+    #     # Find required label
+    #     for label in todoist_api.get_items("labels"):
+    #         if label['name'] == name:
+    #             label_id = label['id']
+    #             break
+    #     return label_id
 
     
     # task = requests.post("https://api.todoist.com/sync/v9/items/add", headers=todoist_headers, json={
@@ -210,24 +214,24 @@ if __name__ == "__main__":
 
     # TODO Try to add lilke this
 
-    task = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
-                        "commands": [
-                            {
-                                "type": "item_add",
-                                "temp_id": str(uuid4()),
-                                "uuid": str(uuid4()),
-                                "args": {
-                                        "content": "TEST TASK",
-                                        "description": "description",
-                                        "due": {"string":  "2023-01-13 at 13:00"},
-                                        "labels": ["pzd"]
-                                        }
-                            }
-                        ]
-                    }
-                    ).text
-    print(task)
-# sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3)
+    # task = requests.post("https://api.todoist.com/sync/v9/sync", headers=todoist_headers, json={
+    #                     "commands": [
+    #                         {
+    #                             "type": "item_add",
+    #                             "temp_id": str(uuid4()),
+    #                             "uuid": str(uuid4()),
+    #                             "args": {
+    #                                     "content": "TEST TASK",
+    #                                     "description": "description",
+    #                                     "due": {"string":  "2023-01-13 at 13:00"},
+    #                                     "labels": ["pzd"]
+    #                                     }
+    #                         }
+    #                     ]
+    #                 }
+    #                 ).text
+    # print(task)
+  sync_calendar(config['icalendar'][0]['url'], tag="todoisttotxt", priority=3, dry_run=True)
 
 # api = todoist.TodoistAPI(config['todoist_token'])
 # api.sync()

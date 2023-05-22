@@ -40,6 +40,7 @@ class TodoistAPI():
         return requests.get(*args, **kwargs)
 
     def get_items(self, items_type="items", force_update=False):
+        response = None
         try:
             print(f"TODOIST get_items: {items_type}, {force_update}")
             if items_type not in self._state_cache or force_update:
@@ -57,13 +58,16 @@ class TodoistAPI():
                 items = self._state_cache[items_type]
             return items
         except Exception as e:
-            raise Exception(f"API ERROR ({e}): {response}")
+            if response:
+                raise Exception(f"API ERROR ({e}): {response}")
+            else:
+                raise Exception(f"API ERROR ({e})")
 
     def delete_item(self, item):
         print(f"- TODOIST delete_item: {item} - ", end="")
         item_id = item['id'] if isinstance(item, dict) else item
         response = self.delete("https://api.todoist.com/rest/v2/tasks/{}".format(item_id), headers=self.headers)
-        if not response.status_code == 204:
+        if response.status_code != 204:
             print(f"Failed removing item {item_id}, API error: {response.text}")
         else:
             print("Success.")
@@ -128,9 +132,14 @@ class TodoistAPI():
         return responses
 
     def get_completed_tasks(self):
-        return self.post("https://api.todoist.com/sync/v9/completed/get_all", headers=self.headers, json={
-            "limit": 200
-        }).json()['items']
+        completed_tasks = []
+        for task in self.get("https://api.todoist.com/rest/v2/tasks", headers=self.headers).json():
+            if task['is_completed'] == True:
+                completed_tasks.append(task)
+        return completed_tasks
+        # return self.post("https://api.todoist.com/sync/v9/completed/get_all", headers=self.headers, json={
+        #     "limit": 200
+        # }).json()['items']
     
     def add_item(self, item_data, quick=False):
         print(f"TODOIST add_item: {item_data}")
@@ -164,8 +173,25 @@ if __name__ == "__main__":
     import time
     with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
         config = yaml.safe_load(f.read())
+
     api = TodoistAPI(config['todoist_token'])
-    print (api.delete_item("6522602728"))
+
+
+    projects = {}
+    for project in api.get_items("projects"):
+        projects[project['id']] = project['name']
+
+    completed_tasks = api.get_completed_tasks()
+    print(completed_tasks)
+    print(len(completed_tasks))
+    # for task in completed_tasks:
+    #     print()
+    #     print(task['content'])
+    #     print(projects[task['project_id']])
+    #     api.delete_item(task['id'])
+    #     api.delete_item(task['task_id'])
+    #     break
+    # print (api.delete_item("6491418785")) 
     # items = api.get_completed_tasks()
     # for item in items:
     #     print(item['content'])
