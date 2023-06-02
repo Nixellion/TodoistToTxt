@@ -474,7 +474,7 @@ if __name__ == "__main__":
                             break
 
                     else:
-                        print(f"Label did not match expire label pattern: {label} ({notify_regex})")
+                        print(f"Label did not match expire label pattern: {label} ({expire_regex})")
             except Exception as e:
                 print(f"Failed processing expiration for task ({label}): {e}")
 
