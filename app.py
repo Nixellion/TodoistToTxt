@@ -472,6 +472,8 @@ if __name__ == "__main__":
                                 print(f"Querying task for deletion due to expiration label: '{str(item)}")
                                 delete_ids.append(item['task_id'])
                             break
+                        else:
+                            print(f"Task is marked to expire, but it's not due yet {label}: {str(item)}")
 
                     else:
                         print(f"Label did not match expire label pattern: {label} ({expire_regex})")
