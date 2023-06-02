@@ -461,12 +461,12 @@ if __name__ == "__main__":
                         if expire_hours:
                             expire_delta = timedelta(hours=int(expire_hours))
                             try:
-                                due_date = datetime.strptime(item['created_at'], "%Y-%m-%d")
+                                due_date = datetime.strptime(item['added_at'], "%Y-%m-%d")
                             except:
                                 try:
-                                    due_date = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%S")
+                                    due_date = datetime.strptime(item['added_at'], "%Y-%m-%dT%H:%M:%S")
                                 except:
-                                    due_date = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+                                    due_date = datetime.strptime(item['added_at'], "%Y-%m-%dT%H:%M:%SZ")
                                     due_date += timedelta(hours=config['local_timezone_offset'])
                             if datetime.now() - due_date > expire_hours:
                                 print(f"Querying task for deletion due to expiration label: '{str(item)}")
