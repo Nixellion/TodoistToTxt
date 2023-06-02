@@ -474,7 +474,7 @@ if __name__ == "__main__":
                                         due_date += timedelta(hours=config['local_timezone_offset'])
                             if datetime.now() - due_date > expire_delta:
                                 print(f"Querying task for deletion due to expiration label: '{str(item)}")
-                                delete_ids.append(item['task_id'])
+                                delete_ids.append(item['id'])
                             break
                         else:
                             print(f"Task is marked to expire, but it's not due yet {label}: {str(item)}")
