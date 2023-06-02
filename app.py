@@ -372,6 +372,7 @@ if __name__ == "__main__":
 
     # endregion
 
+
     # region Notifier
     def notifier_task_hash(task, label=""):
         string = json.dumps(task)
@@ -445,6 +446,40 @@ if __name__ == "__main__":
                 print(e)
                 traceback.print_exc()
 
+    delete_ids = []
+    # region Task Expiration
+    for item in todoist_api.get_items():
+            # print(f"Notify? ({item['content']})")
+            try:
+                expire_regex = r"expire(?P<hours>.+)?"
+                # if len(item['labels']) == 0:
+                #     print("No labels in this task.")
+                for label in item['labels']:
+                    match = re.match(expire_regex, label)
+                    if match:
+                        expire_hours = match.groupdict().get("hours", None)
+                        if expire_hours:
+                            expire_delta = timedelta(hours=int(expire_hours))
+                            try:
+                                due_date = datetime.strptime(item['created_at'], "%Y-%m-%d")
+                            except:
+                                try:
+                                    due_date = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%S")
+                                except:
+                                    due_date = datetime.strptime(item['created_at'], "%Y-%m-%dT%H:%M:%SZ")
+                                    due_date += timedelta(hours=config['local_timezone_offset'])
+                            if datetime.now() - due_date > expire_hours:
+                                print(f"Querying task for deletion due to expiration label: '{str(item)}")
+                                delete_ids.append(item['task_id'])
+                            break
+
+                    else:
+                        print(f"Label did not match expire label pattern: {label} ({notify_regex})")
+            except Exception as e:
+                print(f"Failed processing expiration for task ({label}): {e}")
+
+    # endregion
+
     # endregion
     local_filepath = os.path.join(appdir, config['filename_output'])
 
@@ -455,7 +490,6 @@ if __name__ == "__main__":
 
 
 
-    delete_ids = []
     for item in todoist_api.get_completed_tasks():
         if config['remove_completed_tasks']:
             remember_task(item['content'])
