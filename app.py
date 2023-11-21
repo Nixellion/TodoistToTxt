@@ -244,6 +244,30 @@ Link: {asana_task['permalink_url']}
     return description
 
 
+def send_notification(message, title=None, click_action = None):
+    print(f"Trying to send notification: {message} | {title} | {click_action}")
+    try:
+        url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
+        headers = {
+            "Authorization": f"Bearer {config['homeassistant']['hass_token']}",
+            "content-type": "application/json",
+        }
+
+        variables = {"message": message}
+        if title:
+            variables['title'] = title
+        if click_action:
+            variables['clickAction'] = click_action
+
+        response = requests.post(url, headers=headers, json={
+            "entity_id": config['homeassistant']['script_entity_id'],
+            "variables": variables
+        }
+        )
+        return response
+    except Exception as e:
+        print("ERROR!", e)
+
 if __name__ == "__main__":
     # TODO Make 'type' selection work
     # region ical
@@ -419,26 +443,14 @@ if __name__ == "__main__":
                         from_date = due_date - notify_delta
                         if from_date < now < due_date:
                             print(f"Trying to notify about due task: {item['content']}")
-                            try:
-                                url = f"{config['homeassistant']['hass_url']}/api/services/script/turn_on"
-                                headers = {
-                                    "Authorization": f"Bearer {config['homeassistant']['hass_token']}",
-                                    "content-type": "application/json",
-                                }
-                                response = requests.post(url, headers=headers, json={
-                                    "entity_id": config['homeassistant']['script_entity_id'],
-                                    "variables":
-                                    {
-                                        "title": f"Todoist Item Due {timeago.format(due_date, datetime.now())}!",
-                                        "message": item['content'],
-                                        "clickAction": f"https://todoist.com/showTask?id={item['id']}" # Set url to open todoist item,
-                                    }
-                                }
-                                )
+                            notification_result = send_notification(
+                                item['content'],
+                                f"Todoist Item Due {timeago.format(due_date, datetime.now())}!",
+                                f"https://todoist.com/showTask?id={item['id']}"
+                            )
+                            if notification_result is not None:
                                 with open(notified_filepath, "a+") as f:
                                     f.write(item_hash + "\n")
-                            except Exception as e:
-                                print("ERROR!", e)
                     else:
                         print(f"Label did not match notify label pattern: {label} ({notify_regex})")
 
@@ -475,6 +487,11 @@ if __name__ == "__main__":
                             if datetime.now() - due_date > expire_delta:
                                 print(f"Querying task for deletion due to expiration label: '{str(item)}")
                                 delete_ids.append(item['id'])
+                                notification_result = send_notification(
+                                    item['content'],
+                                    f"Todoist Item Expired.",
+                                    f"https://todoist.com/showTask?id={item['id']}"
+                                )
                             break
                         else:
                             print(f"Task is marked to expire, but it's not due yet {label}: {str(item)}")
