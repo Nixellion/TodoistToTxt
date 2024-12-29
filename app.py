@@ -210,7 +210,7 @@ Due: {due}
 
 {description}
 """
-        for i in sorted(project_items):
+        for i in project_items:
             labels = ""
             for l in i['labels']:
                 labels += f"`{l}` "
