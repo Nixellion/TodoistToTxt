@@ -207,6 +207,7 @@ def save_to_file(filepath, format, project, delete_originals):
 
 Labels: {labels}
 Due: {due}
+TodoTxt: `{txt_format}`
 
 {description}
 """
@@ -218,7 +219,8 @@ Due: {due}
                 title=i['content'],
                 labels=labels,
                 due=get_item_due_date(i),
-                description=i['description']
+                description=i['description'],
+                txt_format=todoist_item_to_txt(i)
             )
             with open(filepath, "a+", encoding="utf-8") as f:
                 f.write(new_text)
