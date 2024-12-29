@@ -126,7 +126,20 @@ def get_project_id(name):
     return project_id
 
 
-def get_project_items(project_name):
+def get_item_due_date(item):
+    if item['due'] is None:
+        return None
+    try:
+        due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d").date()
+    except:
+        try:
+            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S").date()
+        except:
+            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ").date()
+            due_date += timedelta(hours=config['local_timezone_offset'])
+    return due_date
+
+def get_project_items(project_name, as_text=True, adhere_to_limits=True):
     # Filter items
     # Filter completed out
     project_id = get_project_id(project_name)
@@ -136,14 +149,7 @@ def get_project_items(project_name):
         select = False
         if project_name == "Today":
             if item['due'] != None:
-                try:
-                    due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d").date()
-                except:
-                    try:
-                        due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S").date()
-                    except:
-                        due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ").date()
-                        due_date += timedelta(hours=config['local_timezone_offset'])
+                due_date = get_item_due_date(item)
 
                 now_date = datetime.now().date()
                 date_check = due_date <= now_date
@@ -155,12 +161,16 @@ def get_project_items(project_name):
             select = True
 
         if select:
-            if config['max_items'] != 0 and len(items) > int(config['max_items']) - 1:
+            if adhere_to_limits and config['max_items'] != 0 and len(items) > int(config['max_items']) - 1:
                 break
-            item_text = todoist_item_to_txt(item)
 
-            if item['checked'] is False or config['show_completed_tasks']:
-                items.append(item_text)
+            if as_text is False:
+                items.append(item)
+            else:
+                item_text = todoist_item_to_txt(item)
+
+                if item['checked'] is False or config['show_completed_tasks']:
+                    items.append(item_text)
 
     return items
 
@@ -183,6 +193,40 @@ def generate_output_text():
     if config['todoist_append_inbox']:
         output_text = f'TODAY (Done: {completed_today()}):\n\n{output_text}\n\nINBOX:\n\n{inbox_text}'
     return output_text
+
+def save_to_file(filepath, format, project, delete_originals):
+    print(f"Save to file: {filepath} format: {format} project: {project} delete_originals: {delete_originals}")
+    if format != "markdown":
+        raise ValueError(f"Format {format} not supported")
+    
+    project_items = get_project_items(project, as_text=False, adhere_to_limits=False)
+    if format == "markdown":
+
+        item_template = """
+# {title}
+
+Labels: {labels}
+Due: {due}
+
+{description}
+"""
+        for i in sorted(project_items):
+            labels = ""
+            for l in i['labels']:
+                labels += f"`{l}` "
+            new_text = item_template.format(
+                title=i['content'],
+                labels=labels,
+                due=get_item_due_date(i),
+                description=i['description']
+            )
+            with open(filepath, "a+", encoding="utf-8") as f:
+                f.write(new_text)
+
+            if delete_originals:
+                todoist_api.delete_item(i)
+
+        
 
 
 def get_archival_text(api: TodoistAPI):
@@ -508,6 +552,9 @@ if __name__ == "__main__":
 
     output_text = generate_output_text()
     backup_text = get_archival_text(todoist_api)
+
+    for stf in config.get("save_to_file", []):
+        save_to_file(**stf)
 
     debug(output_text)
 
