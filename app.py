@@ -324,29 +324,38 @@ def process_inbox_backlog(backlog_config):
     moved_count = 0
 
     for item in todoist_api.get_items():
+        # SKip if task is not in inbox
         if item['project_id'] != inbox_id:
             continue
             
         # Skip if task is recurring
         if item.get('due') and item['due'].get('is_recurring'):
             continue
-            
-        try:
-            created_date = cast_to_datetime(item.get('created_at', item['added_at'])).date()
-            
-            days_old = (current_time - created_date).days
-            
-            if days_old > backlog_config['days_created']:
-                due_date = get_item_due_date(item)
 
-                if not due_date:
-                    continue
-                
-                if (due_date - current_time).days > backlog_config['days_due']:
-                    debug(f"> Moving task to backlog: {item['content']}")
-                    result = todoist_api.move_item(item['id'], backlog_id, remove_due_date=True)
-                    print("<", result)
-                    moved_count += 1
+        created_date = cast_to_datetime(item.get('created_at', item['added_at'])).date()
+        days_old = (current_time - created_date).days
+
+        # If task is not old enough to be moved, skip
+        if days_old < backlog_config['days_created']:
+            continue
+
+        due_date = get_item_due_date(item)
+
+        # If task has no due date, skip
+        if not due_date:
+            continue
+
+        target_date = (datetime.now() - timedelta(days=1)).date()
+        
+        # If task is due today or in the future, skip, only move older tasks
+        if due_date > target_date:
+            continue
+
+        try:
+            debug(f"> Moving task to backlog: {item['content']}")
+            result = todoist_api.move_item(item['id'], backlog_id, remove_due_date=True)
+            print("<", result)
+            moved_count += 1
                     
         except Exception as e:
             debug(f"process_inbox_backlog: Error processing inbox item {item['content']}: {str(e)}")
