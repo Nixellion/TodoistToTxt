@@ -126,10 +126,12 @@ def get_project_id(name):
     return project_id
 
 
-def get_item_due_date(item):
+def get_item_due_date(item, as_date=True):
     if item['due'] is None:
         return None
-    cast_to_datetime(item['due']['date'])
+    due_date = cast_to_datetime(item['due']['date'])
+    if as_date:
+        return due_date.date()
     return due_date
 
 def get_project_items(project_name, as_text=True, adhere_to_limits=True):
