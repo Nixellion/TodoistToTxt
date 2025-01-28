@@ -169,9 +169,11 @@ class TodoistAPI():
 
     def move_item(self, item_id, project_id):
         print(f"TODOIST move_item: {item_id} -> {project_id}")
-        response = self.post(f"https://api.todoist.com/sync/v9/tasks/{item_id}", headers=self.headers, json={
+        _headers = self.headers.copy()
+        _headers['X-Request-Id'] = str(uuid4())
+        response = self.post(f"https://api.todoist.com/rest/v2/tasks/{item_id}", headers=_headers, json={
             "project_id": project_id
-        }
+            }
         )
         return response
 
