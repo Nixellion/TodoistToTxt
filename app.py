@@ -348,7 +348,7 @@ def process_inbox_backlog(backlog_config):
                     moved_count += 1
                     
         except Exception as e:
-            debug(f"Error processing inbox item {item['content']}: {str(e)}")
+            debug(f"process_inbox_backlog: Error processing inbox item {item['content']}: {str(e)}")
             
     if moved_count > 0:
         debug(f"Moved {moved_count} tasks from Inbox to {backlog_config['project']}")
