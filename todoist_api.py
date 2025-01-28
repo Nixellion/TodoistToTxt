@@ -169,13 +169,20 @@ class TodoistAPI():
 
     def move_item(self, item_id, project_id):
         print(f"TODOIST move_item: {item_id} -> {project_id}")
-        _headers = self.headers.copy()
-        _headers['X-Request-Id'] = str(uuid4())
-        response = self.post(f"https://api.todoist.com/rest/v2/tasks/{item_id}", headers=_headers, json={
-            "project_id": str(project_id)
+        task = requests.post("https://api.todoist.com/sync/v9/sync", headers=self.headers, json={
+                "commands": [
+                    {
+                        "type": "item_move",
+                                "uuid": str(uuid4()),
+                                "args": {
+                                    "id": item_id,
+                                    "project_id": project_id
+                                }
+                    }
+                ]
             }
-        )
-        return response
+            ).text
+        return task
 
     # def add_task(self,)
 if __name__ == "__main__":
