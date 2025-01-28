@@ -314,10 +314,10 @@ def send_notification(message, title=None, click_action = None):
 def process_inbox_backlog(backlog_config):
     """Move old non-recurring tasks from Inbox to backlog project based on configuration settings."""
     inbox_id = get_project_id("Inbox")
-    backlog_id = get_project_id(backlog_config['backlog_project'])
+    backlog_id = get_project_id(backlog_config['project'])
     
     if not inbox_id or not backlog_id:
-        debug(f"Skipping inbox backlog processing - could not find {'Inbox' if not inbox_id else backlog_config['backlog_project']} project")
+        debug(f"Skipping inbox backlog processing - could not find {'Inbox' if not inbox_id else backlog_config['project']} project")
         return
 
     current_time = datetime.now()
@@ -336,13 +336,13 @@ def process_inbox_backlog(backlog_config):
             
             days_old = (current_time - created_date).days
             
-            if days_old > backlog_config['backlog_days_created']:
+            if days_old > backlog_config['days_created']:
                 due_date = get_item_due_date(item)
 
                 if not due_date:
                     continue
                 
-                if (due_date - current_time).days > backlog_config['backlog_days_due']:
+                if (due_date - current_time).days > backlog_config['days_due']:
                     debug(f"Moving task to backlog: {item['content']}")
                     todoist_api.move_item(item['id'], backlog_id)
                     moved_count += 1
@@ -351,7 +351,7 @@ def process_inbox_backlog(backlog_config):
             debug(f"Error processing inbox item {item['content']}: {str(e)}")
             
     if moved_count > 0:
-        debug(f"Moved {moved_count} tasks from Inbox to {backlog_config['backlog_project']}")
+        debug(f"Moved {moved_count} tasks from Inbox to {backlog_config['project']}")
 
 
 def cast_to_datetime(date_string):
