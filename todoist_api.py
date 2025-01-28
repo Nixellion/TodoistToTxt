@@ -172,7 +172,7 @@ class TodoistAPI():
         _headers = self.headers.copy()
         _headers['X-Request-Id'] = str(uuid4())
         response = self.post(f"https://api.todoist.com/rest/v2/tasks/{item_id}", headers=_headers, json={
-            "project_id": project_id
+            "project_id": str(project_id)
             }
         )
         return response
