@@ -129,14 +129,7 @@ def get_project_id(name):
 def get_item_due_date(item):
     if item['due'] is None:
         return None
-    try:
-        due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d").date()
-    except:
-        try:
-            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S").date()
-        except:
-            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ").date()
-            due_date += timedelta(hours=config['local_timezone_offset'])
+    cast_to_datetime(item['due']['date'])
     return due_date
 
 def get_project_items(project_name, as_text=True, adhere_to_limits=True):
@@ -205,11 +198,13 @@ def save_to_file(filepath, format, project, delete_originals):
         item_template = """
 # {title}
 
-Labels: {labels}
-Due: {due}
-TodoTxt: `{txt_format}`
+> **Labels**: `{labels}`
+> **Due**: {due}
+> **TodoTxt**: `{txt_format}`
 
 {description}
+
+---
 """
         for i in project_items:
             labels = ""
@@ -313,6 +308,64 @@ def send_notification(message, title=None, click_action = None):
         return response
     except Exception as e:
         print("ERROR!", e)
+
+def process_inbox_backlog(backlog_config):
+    """Move old non-recurring tasks from Inbox to backlog project based on configuration settings."""
+    inbox_id = get_project_id("Inbox")
+    backlog_id = get_project_id(backlog_config['backlog_project'])
+    
+    if not inbox_id or not backlog_id:
+        debug(f"Skipping inbox backlog processing - could not find {'Inbox' if not inbox_id else backlog_config['backlog_project']} project")
+        return
+
+    current_time = datetime.now()
+    moved_count = 0
+
+    for item in todoist_api.get_items():
+        if item['project_id'] != inbox_id:
+            continue
+            
+        # Skip if task is recurring
+        if item.get('due') and item['due'].get('is_recurring'):
+            continue
+            
+        try:
+            created_date = cast_to_datetime(item['created'])
+            
+            days_old = (current_time - created_date).days
+            
+            if days_old > backlog_config['backlog_days_created']:
+                due_date = get_item_due_date(item)
+
+                if not due_date:
+                    continue
+                
+                if (due_date - current_time).days > backlog_config['backlog_days_due']:
+                    debug(f"Moving task to backlog: {item['content']}")
+                    todoist_api.move_item(item['id'], backlog_id)
+                    moved_count += 1
+                    
+        except Exception as e:
+            debug(f"Error processing inbox item {item['content']}: {str(e)}")
+            
+    if moved_count > 0:
+        debug(f"Moved {moved_count} tasks from Inbox to {backlog_config['backlog_project']}")
+
+
+def cast_to_datetime(date_string):
+    try:
+        due_date = datetime.strptime(date_string, "%Y-%m-%d")
+    except:
+        try:
+            due_date = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S")
+        except:
+            try:
+                due_date = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%SZ")
+                due_date += timedelta(hours=config['local_timezone_offset'])
+            except:
+                due_date = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S.%fZ")
+                due_date += timedelta(hours=config['local_timezone_offset'])
+    return due_date
 
 if __name__ == "__main__":
     # TODO Make 'type' selection work
@@ -475,15 +528,7 @@ if __name__ == "__main__":
                             print(f"Already notified task: {item['content']}")
                             continue
 
-                        # TODO This is used twice might need to turn into function, the only difference is .date() in the end
-                        try:
-                            due_date = datetime.strptime(item['due']['date'], "%Y-%m-%d")
-                        except:
-                            try:
-                                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%S")
-                            except:
-                                due_date = datetime.strptime(item['due']['date'], "%Y-%m-%dT%H:%M:%SZ")
-                                due_date += timedelta(hours=config['local_timezone_offset'])
+                        due_date = cast_to_datetime(item['due']['date'])
 
                         now = datetime.now()
                         from_date = due_date - notify_delta
@@ -518,18 +563,8 @@ if __name__ == "__main__":
                         expire_hours = match.groupdict().get("hours", None)
                         if expire_hours:
                             expire_delta = timedelta(hours=int(expire_hours))
-                            try:
-                                due_date = datetime.strptime(item['added_at'], "%Y-%m-%d")
-                            except:
-                                try:
-                                    due_date = datetime.strptime(item['added_at'], "%Y-%m-%dT%H:%M:%S")
-                                except:
-                                    try:
-                                        due_date = datetime.strptime(item['added_at'], "%Y-%m-%dT%H:%M:%SZ")
-                                        due_date += timedelta(hours=config['local_timezone_offset'])
-                                    except:
-                                        due_date = datetime.strptime(item['added_at'], "%Y-%m-%dT%H:%M:%S.%fZ")
-                                        due_date += timedelta(hours=config['local_timezone_offset'])
+                            due_date = cast_to_datetime(item['added_at'])
+                            
                             if datetime.now() - due_date > expire_delta:
                                 print(f"Querying task for deletion due to expiration label: '{str(item)}")
                                 delete_ids.append(item['id'])
@@ -560,8 +595,6 @@ if __name__ == "__main__":
 
     debug(output_text)
 
-
-
     for item in todoist_api.get_completed_tasks():
         if config['remove_completed_tasks']:
             remember_task(item['content'])
@@ -571,9 +604,15 @@ if __name__ == "__main__":
             else:
                 print(f"Config tells me to skip clean_up_completed_tasks: {item['content']}")
 
+
     if len(delete_ids) > 0:
         print("RESULT:")
         print (todoist_api.delete_items(delete_ids))
+
+
+    # Move to backlog
+    if config.get("auto_backlog", {}):
+        process_inbox_backlog(config["auto_backlog"])
 
     # Copy if copy
     if config['export_file_as']:
