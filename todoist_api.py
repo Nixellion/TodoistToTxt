@@ -167,6 +167,14 @@ class TodoistAPI():
             ).text
         return task
 
+    def move_item(self, item_id, project_id):
+        print(f"TODOIST move_item: {item_id} -> {project_id}")
+        response = self.post(f"https://api.todoist.com/sync/v9/tasks/{item_id}", headers=self.headers, json={
+            "project_id": project_id
+        }
+        )
+        return response
+
     # def add_task(self,)
 if __name__ == "__main__":
     # Testing
