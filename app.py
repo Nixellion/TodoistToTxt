@@ -344,7 +344,7 @@ def process_inbox_backlog(backlog_config):
                 
                 if (due_date - current_time).days > backlog_config['days_due']:
                     debug(f"> Moving task to backlog: {item['content']}")
-                    result = todoist_api.move_item(item['id'], backlog_id)
+                    result = todoist_api.move_item(item['id'], backlog_id, remove_due_date=True)
                     print("<", result)
                     moved_count += 1
                     

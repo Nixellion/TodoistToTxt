@@ -167,10 +167,10 @@ class TodoistAPI():
             ).text
         return task
 
-    def move_item(self, item_id, project_id):
+    def move_item(self, item_id, project_id, remove_due_date=False):
         print(f"TODOIST move_item: {item_id} -> {project_id}")
-        task = requests.post("https://api.todoist.com/sync/v9/sync", headers=self.headers, json={
-                "commands": [
+
+        commands =[
                     {
                         "type": "item_move",
                                 "uuid": str(uuid4()),
@@ -180,6 +180,20 @@ class TodoistAPI():
                                 }
                     }
                 ]
+
+        if remove_due_date:
+            commands.append({
+                        "type": "item_update",
+                                "uuid": str(uuid4()),
+                                "args": {
+                                    "id": item_id,
+                                    "due": None
+                                }
+                    }
+                )
+
+        task = requests.post("https://api.todoist.com/sync/v9/sync", headers=self.headers, json={
+                "commands": commands
             }
             ).text
         return task
