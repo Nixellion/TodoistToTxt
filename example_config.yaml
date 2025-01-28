@@ -40,3 +40,7 @@ homeassistant:
   hass_token: xxxxxxxxx # Home asssitant token which you can get from the UI under your user profile page (at least at the time of writing this)
   hass_url: http://192.168.1.2:8123 # Replace with your local or external home assistant url, *without* the trailing slash
   script_entity_id: script.my_notification # Script that will be triggered when event is processed. "title" and "message" attributes will be POSTed.
+# auto_backlog:
+#   - project: Backlog
+#     days_created: 30
+#     days_due: 2
