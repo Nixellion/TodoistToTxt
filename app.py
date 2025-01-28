@@ -320,7 +320,7 @@ def process_inbox_backlog(backlog_config):
         debug(f"Skipping inbox backlog processing - could not find {'Inbox' if not inbox_id else backlog_config['project']} project")
         return
 
-    current_time = datetime.now()
+    current_time = datetime.now().date()
     moved_count = 0
 
     for item in todoist_api.get_items():
@@ -332,7 +332,7 @@ def process_inbox_backlog(backlog_config):
             continue
             
         try:
-            created_date = cast_to_datetime(item.get('created_at', item['added_at']))
+            created_date = cast_to_datetime(item.get('created_at', item['added_at'])).date()
             
             days_old = (current_time - created_date).days
             
