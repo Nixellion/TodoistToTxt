@@ -332,7 +332,7 @@ def process_inbox_backlog(backlog_config):
             continue
             
         try:
-            created_date = cast_to_datetime(item['created'])
+            created_date = cast_to_datetime(item['created_at'])
             
             days_old = (current_time - created_date).days
             
