@@ -198,6 +198,23 @@ class TodoistAPI():
             ).text
         return task
 
+    def update_item(self, item_id, new_data):
+        print(f"TODOIST update_item: {item_id} -> {new_data}")
+        task = requests.post("https://api.todoist.com/sync/v9/sync", headers=self.headers, json={
+                "commands": [
+                    {
+                        "type": "item_update",
+                                "uuid": str(uuid4()),
+                                "args": {
+                                    "id": item_id,
+                                    **new_data
+                                }
+                    }
+                ]
+            }
+            ).text
+        return task
+
     # def add_task(self,)
 if __name__ == "__main__":
     # Testing

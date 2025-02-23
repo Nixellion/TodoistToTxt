@@ -3849,42 +3849,6 @@
  'responsible_uid': None,
  'section_id': None,
  'sync_id': None,
- 'user_id': 3121199}),
-                 Item({'added_by_uid': 3121199,
- 'assigned_by_uid': None,
- 'checked': 0,
- 'child_order': 2863,
- 'collapsed': 0,
- 'content': 'PZD: test: descriptiontest tetwetwet @pzd',
- 'date_added': '2022-11-29T14:25:31Z',
- 'date_completed': None,
- 'date_string': '2022.11.29 at 17:30',
- 'day_order': -1,
- 'description': 'descriptiontest tetwetwet\n'
-                'wetwet\n'
-                'wetwet\n'
-                '\n'
-                'Link: '
-                '[Авторизация](https://calendar.yandex.ru/for/panzerdog.com/event?event_id=1784449545)\n'
-                '\n'
-                '---\n'
-                '[UID: mRkpHCjUyandex.ru]',
- 'due': {'date': '2022-11-29T14:30:00Z',
-         'is_recurring': False,
-         'lang': 'en',
-         'string': '29 Nov 17:30',
-         'timezone': 'Europe/Moscow'},
- 'id': 6393546386,
- 'in_history': 0,
- 'is_deleted': 0,
- 'labels': [],
- 'legacy_project_id': 133194839,
- 'parent_id': None,
- 'priority': 4,
- 'project_id': 938501207,
- 'responsible_uid': None,
- 'section_id': None,
- 'sync_id': None,
  'user_id': 3121199})],
     'labels': [   Label({'color': 47,
  'id': 2154442306,
@@ -4107,7 +4071,7 @@
                 'is_biz_admin': False,
                 'is_premium': False,
                 'join_date': '2014-12-05T09:44:06Z',
-                'karma': 30935.0,
+                'karma': 30953.0,
                 'karma_trend': 'up',
                 'lang': 'en',
                 'mfa_enabled': False,

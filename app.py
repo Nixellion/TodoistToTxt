@@ -16,6 +16,7 @@ import json
 import re
 import time
 import timeago
+import ai
 # easywebdav python3 hack
 import easywebdav.client
 from datetime import date, datetime, timedelta
@@ -335,9 +336,6 @@ def process_inbox_backlog(backlog_config):
         created_date = cast_to_datetime(item.get('created_at', item['added_at'])).date()
         days_old = (current_time - created_date).days
 
-        # If task is not old enough to be moved, skip
-        if days_old < backlog_config['days_created']:
-            continue
 
         due_date = get_item_due_date(item)
 
@@ -349,6 +347,10 @@ def process_inbox_backlog(backlog_config):
         
         # If task is due today or in the future, skip, only move older tasks
         if due_date > target_date:
+            continue
+
+        # If task is not old enough to be moved, skip
+        if days_old < backlog_config['days_created']:
             continue
 
         try:
@@ -594,6 +596,48 @@ if __name__ == "__main__":
                         print(f"Label did not match expire label pattern: {label} ({expire_regex})")
             except Exception as e:
                 print(f"Failed processing expiration for task ({label}): {e}")
+
+    # endregion
+
+    # region AI
+    if config.get('llm_tools') and config['llm_tools'].get('smart_sort'):
+        for item in get_project_items("Inbox"):
+            system_message = "Your task is to analyze user's ToDo tasks and sort them into the following categories:\n\n"
+            system_message += config['llm_tools']['smart_sort']['prompt']
+            system_message += """\n\nIf no category fits, leave it in inbox.
+
+Your reply must be in JSON in a form of:
+
+```
+{
+"reasoning": "Think and provide reasoning for your decision",
+"confidence": "How confident you are about your decision",
+"category": "Category"
+}
+```
+"""
+            message = f"Sort this task:\n\n{item['content']}"
+            if item.get('description', None):
+                message += "\n\nDescription: " + item['description']
+            
+            ai_response = ai.call_ai(system_message=system_message, user_message=message, as_json=True)
+
+            print(f"AI Says: {ai_response}")
+            if ai_response:
+                suggested_project = ai_response.get('category')
+                if suggested_project:
+                    backlog_id = get_project_id(suggested_project)
+                    if backlog_id:
+                        debug(f"> AI Moving task to {suggested_project}: {item['content']}")
+                        result = todoist_api.move_item(item['id'], backlog_id, remove_due_date=False)
+                        print("<", result)
+                    else:
+                        print(f"AI: Project {suggested_project} not found.")
+                else:
+                    print(f"AI failed to suggest project.")
+            else:
+                print("No response from AI.")
+
 
     # endregion
 

@@ -12,6 +12,12 @@ with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
 api = todoist.TodoistAPI(config['todoist_token'])
 api.sync()
 
+
+
+print (labels)
+# for item in api.state['items']:
+#     print (item['labels'])
+
 def get_archival_text(api):
     projects = {}
     for project in api.state['projects']:
@@ -31,3 +37,16 @@ def get_archival_text(api):
 
     return archival_text
 #     print(f"({string.ascii_uppercase[4 - item['priority']]}) {item['content']}")
+
+
+def get_archival_text(api):
+    tasks = []
+
+    for item in api.state['items']:
+        tasks.append(todoist_item_to_txt(item))
+
+    archival_text = ''
+    for task in sorted(tasks):
+        archival_text += task + "\n"
+
+    return archival_text
