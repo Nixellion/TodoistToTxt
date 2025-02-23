@@ -601,7 +601,7 @@ if __name__ == "__main__":
 
     # region AI
     if config.get('llm_tools') and config['llm_tools'].get('smart_sort'):
-        for item in get_project_items("Inbox"):
+        for item in get_project_items("Inbox", as_text=False):
             system_message = "Your task is to analyze user's ToDo tasks and sort them into the following categories:\n\n"
             system_message += config['llm_tools']['smart_sort']['prompt']
             system_message += """\n\nIf no category fits, leave it in inbox.
