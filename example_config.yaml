@@ -44,7 +44,12 @@ homeassistant:
 #   project: Backlog
 #   days_created: 30
 #   days_due: 2
+
 llm_tools:
+  use_ai_type: ollama # Used so you can keep both ollama and opened ai configs and chose one or the other, also some internal processing is different
+  ollama:
+    host: 192.168.1.11
+    model: qwen3:4b
   openedai:
     base_url: http://192.168.1.10:5000
     api_key: none
