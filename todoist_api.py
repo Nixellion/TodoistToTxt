@@ -3,6 +3,7 @@ import yaml
 import requests
 from uuid import uuid4
 import time
+import sys
 
 appdir = os.path.dirname(os.path.realpath(__file__))  # rp, realpath
 
@@ -49,7 +50,13 @@ class TodoistAPI():
                     "sync_token": "*",
                     "resource_types": [items_type]
                 }
-                ).json()
+                )
+                try:
+                    response = response.json()
+                except Exception as e:
+                    print(f"ERROR, failed parsing JSON")
+                    print(response)
+                    sys.exit()
                 items = response[items_type]
                 # if items_type == "items":
                 #     items.extend(self.get_completed_tasks())
