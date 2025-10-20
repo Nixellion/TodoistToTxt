@@ -58,6 +58,7 @@ except Exception as e:
     traceback.print_exc()
     print(f"LABELS DATA: {labels_data}")
     print(f"PROJECTS DATA: {projects_data}")
+    sys.exit()
 # if config['debug']:
 #     with open(os.path.join(appdir, "debug.json"), "w+", encoding="utf-8") as f:
 #         f.write(pprint.pformat(api.state, indent=4))
