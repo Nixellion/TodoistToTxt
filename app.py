@@ -1,6 +1,7 @@
 # TODO: Make Asana task tracking smarter, dont just batch delete everything, edit instead or smth, and remember if a task was compelted in todoist.
 # IDEA: Store hashes of all tasks that were marked as compelted to file
 
+import sys
 import os
 import shutil
 import yaml
@@ -41,14 +42,22 @@ with open(os.path.join(appdir, 'config.yaml'), 'r') as f:
 # Fetch todoist items
 todoist_api = TodoistAPI(config['todoist_token'])
 
-labels = {}
-for label in todoist_api.get_items("labels"):
-    labels[label['id']] = label['name']
+try:
+    labels = {}
+    labels_data = todoist_api.get_items("labels")
+    for label in labels_data:
+        labels[label['id']] = label['name']
 
-projects = {}
-for project in todoist_api.get_items("projects"):
-    projects[project['id']] = project['name']
-
+    projects = {}
+    projects_data = todoist_api.get_items("projects")
+    for project in projects_data:
+        projects[project['id']] = project['name']
+except Exception as e:
+    print("\n# ERROR")
+    print(e)
+    traceback.print_exc()
+    print(f"LABELS DATA: {labels_data}")
+    print(f"PROJECTS DATA: {projects_data}")
 # if config['debug']:
 #     with open(os.path.join(appdir, "debug.json"), "w+", encoding="utf-8") as f:
 #         f.write(pprint.pformat(api.state, indent=4))
