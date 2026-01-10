@@ -553,9 +553,19 @@ if __name__ == "__main__":
                             print(f"Already notified task: {item['content']}")
                             continue
 
-                        due_date = cast_to_datetime(item['due']['date'])
+                        due_date_str = item['due']['date']
+                        due_date = cast_to_datetime(due_date_str)
+
+                        # If it's only a date (no time), use default_notify_time if available
+                        if len(due_date_str) <= 10 and config.get('default_notify_time'):
+                            try:
+                                hour, minute = map(int, config['default_notify_time'].split(':'))
+                                due_date = due_date.replace(hour=hour, minute=minute)
+                            except Exception as e:
+                                print(f"Error parsing default_notify_time: {e}")
 
                         now = datetime.now()
+
                         from_date = due_date - notify_delta
                         if from_date < now < due_date:
                             print(f"Trying to notify about due task: {item['content']}")
