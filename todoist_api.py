@@ -24,7 +24,6 @@ class TodoistAPI():
 
         # Current Sync API base (legacy /sync/v9/* is retired and can return HTTP 410 Gone)
         self.SYNC_URL = "https://api.todoist.com/api/v1/sync"
-        self.COMPLETED_GET_ALL_URL = "https://api.todoist.com/api/v1/completed/get_all"
         self.REST_TASKS_URL = "https://api.todoist.com/rest/v2/tasks"
 
         self._state_cache = {}
@@ -162,21 +161,28 @@ class TodoistAPI():
         return responses
 
     def get_completed_tasks(self):
-        # REST v2 /tasks returns only active tasks. Completed tasks must be fetched via Sync API.
-        # Return shape matches Todoist completed/get_all: items contain `content` and `task_id`.
-        response = self.post(
-            self.COMPLETED_GET_ALL_URL,
-            headers={**self.headers, "content-type": "application/x-www-form-urlencoded"},
-            data={"limit": 200},
-            timeout=60,
-        )
-        if response.status_code != 200:
-            snippet = (response.text or "")[:800]
-            raise RuntimeError(
-                f"Todoist completed/get_all error: HTTP {response.status_code} url={getattr(response, 'url', self.COMPLETED_GET_ALL_URL)} body={snippet}"
-            )
-        data = response.json()
-        return data.get("items", [])
+        """Return completed tasks.
+
+        Note: Todoist has deprecated older completed-task endpoints for some API versions/tokens.
+        The most compatible approach is to use the Sync `items` resource and filter by `checked`.
+
+        We normalize the output to match what [`app.py`](app.py:675) expects:
+        a list of dicts containing at least `content` and `task_id`.
+        """
+
+        completed = []
+        # Force update to reduce surprises if items were cached earlier.
+        for item in self.get_items("items", force_update=True):
+            if item.get("checked") is True:
+                completed.append(
+                    {
+                        "task_id": item.get("id"),
+                        "content": item.get("content"),
+                        # Keep original item id too for callers that might use it.
+                        "id": item.get("id"),
+                    }
+                )
+        return completed
     
     def add_item(self, item_data, quick=False):
         print(f"TODOIST add_item: {item_data}")
