@@ -24,6 +24,7 @@ class TodoistAPI():
 
         # Current Sync API base (legacy /sync/v9/* is retired and can return HTTP 410 Gone)
         self.SYNC_URL = "https://api.todoist.com/api/v1/sync"
+        # REST v2 has been reported deprecated for some tenants; prefer Sync commands for writes.
         self.REST_TASKS_URL = "https://api.todoist.com/rest/v2/tasks"
 
         self._state_cache = {}
@@ -89,10 +90,26 @@ class TodoistAPI():
     def delete_item(self, item):
         print(f"- TODOIST delete_item: {item} - ", end="")
         item_id = item['id'] if isinstance(item, dict) else item
-        response = self.delete(f"{self.REST_TASKS_URL}/{item_id}", headers=self.headers, timeout=60)
-        if response.status_code != 204:
+        # Use Sync command delete; REST endpoints are not reliably available.
+        response = self.delete_item_sync(item_id)
+        if response.status_code != 200:
             print(f"Failed removing item {item_id}, API error: {response.text}")
+            return response
+
+        try:
+            payload = response.json()
+        except Exception:
+            payload = None
+
+        # Sync command responses typically include `sync_status` with per-command results.
+        if isinstance(payload, dict) and payload.get("sync_status"):
+            status = payload["sync_status"].get("0") or payload["sync_status"].get("1")
+            if status == "ok":
+                print("Success.")
+            else:
+                print(f"Failed removing item {item_id}, sync_status: {payload.get('sync_status')}")
         else:
+            # Best-effort: treat HTTP 200 as success.
             print("Success.")
         return response
 
@@ -105,12 +122,8 @@ class TodoistAPI():
 
         print(item_ids)
         print()
-        responses = []
-        for item_id in item_ids:
-            response = self.delete_item(item_id)
-            responses.append(response)
-            time.sleep(0.5)
-        return responses
+        # Prefer batching via Sync API to avoid per-item REST calls.
+        return self.delete_items_sync(item_ids)
 
     def delete_item_sync(self, item):
         print(f"TODOIST delete_item_sync: {item}")
