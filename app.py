@@ -543,40 +543,43 @@ if __name__ == "__main__":
                 #     print("No labels in this task.")
                 for label in item['labels']:
                     match = re.match(notify_regex, label)
-                    if match and item['due'] and item['due'] != None:
-                        threshold = match.groupdict().get("threshold", None)
-                        if threshold is None:
-                            threshold = config['notifier_threshold_minutes']
-                        notify_delta = timedelta(minutes=int(threshold))
-                        item_hash = notifier_task_hash(item, label)
-                        if item_hash in notified:
-                            print(f"Already notified task: {item['content']}")
-                            continue
+                    if match:
+                        if item['due'] and item['due'] != None:
+                            threshold = match.groupdict().get("threshold", None)
+                            if threshold is None:
+                                threshold = config['notifier_threshold_minutes']
+                            notify_delta = timedelta(minutes=int(threshold))
+                            item_hash = notifier_task_hash(item, label)
+                            if item_hash in notified:
+                                print(f"Already notified task: {item['content']}")
+                                continue
 
-                        due_date_str = item['due']['date']
-                        due_date = cast_to_datetime(due_date_str)
+                            due_date_str = item['due']['date']
+                            due_date = cast_to_datetime(due_date_str)
 
-                        # If it's only a date (no time), use default_notify_time if available
-                        if len(due_date_str) <= 10 and config.get('default_notify_time'):
-                            try:
-                                hour, minute = map(int, config['default_notify_time'].split(':'))
-                                due_date = due_date.replace(hour=hour, minute=minute)
-                            except Exception as e:
-                                print(f"Error parsing default_notify_time: {e}")
+                            # If it's only a date (no time), use default_notify_time if available
+                            if len(due_date_str) <= 10 and config.get('default_notify_time'):
+                                try:
+                                    hour, minute = map(int, config['default_notify_time'].split(':'))
+                                    due_date = due_date.replace(hour=hour, minute=minute)
+                                except Exception as e:
+                                    print(f"Error parsing default_notify_time: {e}")
 
-                        now = datetime.now()
+                            now = datetime.now()
 
-                        from_date = due_date - notify_delta
-                        if from_date < now < due_date:
-                            print(f"Trying to notify about due task: {item['content']}")
-                            notification_result = send_notification(
-                                item['content'],
-                                f"Todoist Item Due {timeago.format(due_date, datetime.now())}!",
-                                f"https://todoist.com/showTask?id={item['id']}"
-                            )
-                            if notification_result is not None:
-                                with open(notified_filepath, "a+") as f:
-                                    f.write(item_hash + "\n")
+                            from_date = due_date - notify_delta
+                            if from_date < now < due_date:
+                                print(f"Trying to notify about due task: {item['content']}")
+                                notification_result = send_notification(
+                                    item['content'],
+                                    f"Todoist Item Due {timeago.format(due_date, datetime.now())}!",
+                                    f"https://todoist.com/showTask?id={item['id']}"
+                                )
+                                if notification_result is not None:
+                                    with open(notified_filepath, "a+") as f:
+                                        f.write(item_hash + "\n")
+                        else:
+                            print(f"Task has notify label '{label}' but no due date, skipping: {item['content']}")
                     else:
                         print(f"Label did not match notify label pattern: {label} ({notify_regex})")
 
